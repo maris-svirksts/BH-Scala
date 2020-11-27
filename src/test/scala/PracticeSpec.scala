@@ -11,25 +11,22 @@ import scalaj.http.Http
 class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   import Practice._
 
+  val ownerInfoOrError = fetchOwnerInfo()
+  val board = ownerInfoOrError.getOrElse(fail(ownerInfoOrError.toString))
+
   "Owner ID" in {
-    val ownerInfoOrError = fetchOwnerInfo()
-    val board = ownerInfoOrError.getOrElse(fail(ownerInfoOrError.toString))
     val ID = board.owner.ID
 
     ID must be("44731")
   }
 
   "User Meta / nickname" in {
-    val ownerInfoOrError = fetchOwnerInfo()
-    val board = ownerInfoOrError.getOrElse(fail(ownerInfoOrError.toString))
     val nickname = board.owner.user_meta("nickname")
 
     nickname.headOption.getOrElse("none") must be("1925cabin")
   }
 
   "Property ID" in {
-    val ownerInfoOrError = fetchOwnerInfo()
-    val board = ownerInfoOrError.getOrElse(fail(ownerInfoOrError.toString))
     val properties = board.owner.properties("427541").property_data.property_id
 
     properties must be(427541)
@@ -38,7 +35,10 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
 object Practice {
   implicit val config: Configuration = Configuration.default
-  type RecordList = List[String]
+
+  type RecordList  = List[String]
+  type Key         = String
+  type StringValue = String
 
   @JsonCodec final case class PropertyOwner(owner: UserData)
   @JsonCodec final case class UserData(
@@ -58,17 +58,16 @@ object Practice {
 
   @JsonCodec final case class PropertyRecord(
                                               property_data:     PropertyData,
-                                              comment:           Map[String, Map[String, String]],
-                                              comment_meta:      Map[String, CommentMetaData],
+                                              comment:           Map[Key, Map[Key, StringValue]],
+                                              comment_meta:      Map[Key, CommentMetaData],
                                               //calendar_data:     Map[String, CalendarData], TODO: Find why it's broken.
-                                              conversation_data: Map[String, ConversationData]
+                                              conversation_data: Map[Key, ConversationData]
                                             )
   @JsonCodec final case class PropertyData(
                                             property_id: Int,
                                             property_fields: PropertyFields
                                           )
-  @JsonCodec final case class PropertyFields(post_title: List[String]) //TODO: Include all fields.
-    @JsonCodec final case class CommentData(comment_ID: String) //TODO: Include all fields.
+  @JsonCodec final case class PropertyFields(post_title: RecordList) //TODO: Include all fields.
   @JsonCodec final case class CommentMetaData(
                                                city:      RecordList,
                                                country:   RecordList,
