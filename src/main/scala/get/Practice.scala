@@ -6,12 +6,19 @@ import io.circe.generic.extras._
 import io.circe.parser._
 import scalaj.http.Http
 
+/*
+     user_meta:           Map[String, RecordList],
+     properties:          Map[String, PropertyRecord]
+
+     PropertyRecord is a case class, RecordList is a List[String] - probably a bad idea, might need to decide on one
+     because the calls to get variables will differ.
+ */
+
 object Practice {
   implicit val config: Configuration = Configuration.default
 
-  type RecordList  = List[String]
-  type Key         = String
-  type StringValue = String
+  type RecordList = List[String]
+  type Key        = String
 
   @JsonCodec final case class PropertyOwner(owner: UserData)
   @JsonCodec final case class UserData(
@@ -31,9 +38,9 @@ object Practice {
 
   @JsonCodec final case class PropertyRecord(
                                               property_data:     PropertyData,
-                                              comment:           Map[Key, Map[Key, StringValue]],
+                                              comment:           Map[Key, Map[Key, String]],
                                               comment_meta:      Map[Key, CommentMetaData],
-                                              //calendar_data:     Map[String, CalendarData], TODO: Find why it's broken.
+                                              calendar_data:     List[Map[Key, Option[String]]],
                                               conversation_data: Map[Key, ConversationData]
                                             )
   @JsonCodec final case class PropertyData(
@@ -47,8 +54,41 @@ object Practice {
                                                rating:    RecordList,
                                                ticket_id: RecordList
                                              )
-  @JsonCodec final case class CalendarData(calendar_id: String) //TODO: Include all fields.
-  @JsonCodec final case class ConversationData(id: String) //TODO: Include all fields.
+  @JsonCodec final case class ConversationData(
+                                                id:                Option[String],
+                                                operator_id:       Option[String],
+                                                user_name:         Option[String],
+                                                ticket_id:         Option[String],
+                                                email:             Option[String],
+                                                status_id:         Option[String],
+                                                dt:                Option[String],
+                                                ip:                Option[String],
+                                                invoice_status:    Option[String],
+                                                locked_by:         Option[String],
+                                                post_id:           Option[String],
+                                                user_surname:      Option[String],
+                                                accepted:          Option[String],
+                                                reserved:          Option[String],
+                                                booked:            Option[String],
+                                                booking_time:      Option[String],
+                                                reserveData:       Option[String],
+                                                hidden:            Option[String],
+                                                confirmed:         Option[String],
+                                                reminder:          Option[String],
+                                                read:              Option[String],
+                                                last_message:      Option[String],
+                                                follow_up:         Option[String],
+                                                client_2_reminder: Option[String],
+                                                client_id:         Option[String],
+                                                arrival_date:      Option[String],
+                                                internal_notes:    Option[String],
+                                                category:          Option[String],
+                                                license:           Option[String],
+                                                archived:          Option[String],
+                                                to_check:          Option[String],
+                                                owner_read:        Option[String],
+                                                messages:          Map[Key, Map[Key, Option[String]]]
+                                              )
 
   def fetchOwnerInfo(): Either[circe.Error, PropertyOwner] = {
     val body = Http("https://www.boutique-homes.com/remote_search/data.json").asString.body
