@@ -1,37 +1,10 @@
+package get
+
 import io.circe
-import io.circe.parser._
 import io.circe.generic.JsonCodec
 import io.circe.generic.extras._
-import org.scalatest.EitherValues
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import io.circe.parser._
 import scalaj.http.Http
-
-
-class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
-  import Practice._
-
-  val ownerInfoOrError = fetchOwnerInfo()
-  val board = ownerInfoOrError.getOrElse(fail(ownerInfoOrError.toString))
-
-  "Owner ID" in {
-    val ID = board.owner.ID
-
-    ID must be("44731")
-  }
-
-  "User Meta / nickname" in {
-    val nickname = board.owner.user_meta("nickname")
-
-    nickname.headOption.getOrElse("none") must be("1925cabin")
-  }
-
-  "Property ID" in {
-    val properties = board.owner.properties("427541").property_data.property_id
-
-    properties must be(427541)
-  }
-}
 
 object Practice {
   implicit val config: Configuration = Configuration.default
@@ -42,18 +15,18 @@ object Practice {
 
   @JsonCodec final case class PropertyOwner(owner: UserData)
   @JsonCodec final case class UserData(
-                                        ID: String,
-                                        user_login: String,
-                                        user_pass: String,
-                                        user_nicename: String,
-                                        user_email: String,
-                                        user_url: String,
-                                        user_registered: String,
+                                        ID:                  String,
+                                        user_login:          String,
+                                        user_pass:           String,
+                                        user_nicename:       String,
+                                        user_email:          String,
+                                        user_url:            String,
+                                        user_registered:     String,
                                         user_activation_key: String,
-                                        user_status: String,
-                                        display_name: String,
-                                        user_meta: Map[String, RecordList],
-                                        properties: Map[String, PropertyRecord]
+                                        user_status:         String,
+                                        display_name:        String,
+                                        user_meta:           Map[String, RecordList],
+                                        properties:          Map[String, PropertyRecord]
                                       )
 
   @JsonCodec final case class PropertyRecord(
