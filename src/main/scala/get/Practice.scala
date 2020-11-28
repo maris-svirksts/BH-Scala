@@ -100,22 +100,18 @@ object Practice {
     val firstOwner: String  = Http("https://www.boutique-homes.com/remote_search/data.json").asString.body
     val secondOwner: String = Http("https://www.boutique-homes.com/remote_search/data-p2.json").asString.body
 
-    val merged: String = "[" + firstOwner + ", " + secondOwner + "]" // TODO: crude, need to improve.
+    val stringStream: Stream[IO, String] = Stream(firstOwner, secondOwner)
 
-    val stringStream: Stream[IO, String] = Stream(merged)
-
-    stringStream.through(stringArrayParser)
+    stringStream.through(stringStreamParser)
   }
 
   def fetchOwnerInfoDecoded(): Stream[IO, PropertyOwner] = {
     val firstOwner: String  = Http("https://www.boutique-homes.com/remote_search/data.json").asString.body
     val secondOwner: String = Http("https://www.boutique-homes.com/remote_search/data-p2.json").asString.body
 
-    val merged: String = "[" + firstOwner + ", " + secondOwner + "]" // TODO: crude, need to improve.
+    val stringStream: Stream[IO, String] = Stream(firstOwner, secondOwner)
 
-    val stringStream: Stream[IO, String] = Stream(merged)
-
-    val parsedStream: Stream[IO, Json] = stringStream.through(stringArrayParser)
+    val parsedStream: Stream[IO, Json] = stringStream.through(stringStreamParser)
     parsedStream.through(decoder[IO, PropertyOwner])
   }
 }
