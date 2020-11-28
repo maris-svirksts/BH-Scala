@@ -10,7 +10,7 @@ import Practice._
 
 class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
-  val ownerInfoOrError: Stream[IO, Json] = fetchOwnerInfo()
+  val ownerInfoOrError: Stream[IO, Json] = fetchOwnerInfoParsed()
   val board: List[Json] = ownerInfoOrError.compile.toList.unsafeRunSync()
 
   "Owner ID, first json file" in {
