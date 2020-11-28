@@ -44,9 +44,9 @@ object Practice {
 
   @JsonCodec final case class PropertyRecord(
                                               property_data:     PropertyData,
-                                              //comment:           Map[Key, Map[Key, Option[String]]], // TODO: failed when run ownerInfoDecoded.compile.toList.unsafeRunSync()
-                                              //comment_meta:      Map[Key, CommentMetaData], // TODO: need to check why.
-                                              //calendar_data:     List[Map[Key, Option[String]]],
+                                              comment:           Option[Map[Key, Map[Key, Option[String]]]],
+                                              comment_meta:      Option[Map[Key, CommentMetaData]],
+                                              calendar_data:     Option[List[Map[Key, Option[String]]]],
                                               conversation_data: Map[Key, ConversationData]
                                             )
   @JsonCodec final case class PropertyData(
