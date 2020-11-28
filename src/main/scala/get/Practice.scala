@@ -97,21 +97,18 @@ object Practice {
                                               )
 
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
-    val firstOwner: String  = Http("https://www.boutique-homes.com/remote_search/data.json").asString.body
-    val secondOwner: String = Http("https://www.boutique-homes.com/remote_search/data-p2.json").asString.body
+    val sources: List[String] = List(
+      "https://www.boutique-homes.com/remote_search/data.json",
+      "https://www.boutique-homes.com/remote_search/data-p2.json"
+    )
 
-    val stringStream: Stream[IO, String] = Stream(firstOwner, secondOwner)
+    val stringStream: Stream[IO, String] = Stream.emits(sources.map(x => { Http(x).asString.body }))
 
     stringStream.through(stringStreamParser)
   }
 
   def fetchOwnerInfoDecoded(): Stream[IO, PropertyOwner] = {
-    val firstOwner: String  = Http("https://www.boutique-homes.com/remote_search/data.json").asString.body
-    val secondOwner: String = Http("https://www.boutique-homes.com/remote_search/data-p2.json").asString.body
-
-    val stringStream: Stream[IO, String] = Stream(firstOwner, secondOwner)
-
-    val parsedStream: Stream[IO, Json] = stringStream.through(stringStreamParser)
+    val parsedStream: Stream[IO, Json] = fetchOwnerInfoParsed()
     parsedStream.through(decoder[IO, PropertyOwner])
   }
 }
