@@ -1,9 +1,13 @@
 package get
 
-import io.circe
+import cats.effect.IO
+
+import io.circe.Json
 import io.circe.generic.JsonCodec
 import io.circe.generic.extras._
-import io.circe.parser._
+import io.circe.fs2._
+
+import fs2.Stream
 import scalaj.http.Http
 
 /*
@@ -92,9 +96,14 @@ object Practice {
                                                 messages:          Map[Key, Map[Key, Option[String]]]
                                               )
 
-  def fetchOwnerInfo(): Either[circe.Error, PropertyOwner] = {
-    val body = Http("https://www.boutique-homes.com/remote_search/data.json").asString.body
+  def fetchOwnerInfo(): Stream[IO, Json] = {
+    val firstOwner: String  = Http("https://www.boutique-homes.com/remote_search/data.json").asString.body
+    val secondOwner: String = Http("https://www.boutique-homes.com/remote_search/data-p2.json").asString.body
 
-    decode[PropertyOwner](body)
+    val merged: String = "[" + firstOwner + ", " + secondOwner + "]" // TODO: crude, need to improve.
+
+    val stringStream: Stream[IO, String] = Stream(merged)
+
+    stringStream.through(stringArrayParser)
   }
 }
