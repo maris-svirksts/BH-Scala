@@ -7,11 +7,13 @@ import io.circe.parser._
 import scalaj.http.Http
 
 /*
+     Bouncing ideas:
+
      user_meta:           Map[String, RecordList],
      properties:          Map[String, PropertyRecord]
 
      PropertyRecord is a case class, RecordList is a List[String] - probably a bad idea, might need to decide on one
-     because the calls to get variables will differ.
+     because the calls to get variables will differ. Or, have case classes for higher levels only. Or, move to Optics?
  */
 
 object Practice {
