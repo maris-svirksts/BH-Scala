@@ -10,36 +10,44 @@ import Practice._
 
 class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
-  val ownerInfoOrError: Stream[IO, Json] = fetchOwnerInfoParsed()
-  val board: List[Json] = ownerInfoOrError.compile.toList.unsafeRunSync()
+  val ownerInfoParsed: Stream[IO, Json]           = fetchOwnerInfoParsed()
+  val ownerInfoDecoded: Stream[IO, PropertyOwner] = fetchOwnerInfoDecoded()
 
-  "Owner ID, first json file" in {
-    val ID = board.headOption.get.hcursor.downField("owner").downField("ID").as[String].right.value
+  val boardParsed: List[Json]           = ownerInfoParsed.compile.toList.unsafeRunSync()
+  val boardDecoded: List[PropertyOwner] = ownerInfoDecoded.compile.toList.unsafeRunSync()
+
+  "Owner ID, parsed, first json file" in {
+    val ID = boardParsed.headOption.get.hcursor.downField("owner").downField("ID").as[String].right.value
     ID must be("44731")
   }
 
-  "Owner ID, second json file" in {
-    val ID = board.tail.headOption.get.hcursor.downField("owner").downField("ID").as[String].right.value
+  "Owner ID, parsed, second json file" in {
+    val ID = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("ID").as[String].right.value
     ID must be("27524")
   }
 
+  "Owner ID, decoded, first json file" in {
+    val ID = boardDecoded.headOption.get.owner.ID
+    ID must be("44731")
+  }
+
   "User Meta / nickname" in {
-    val nickname = board.headOption.get.hcursor.downField("owner").downField("user_meta").downField("nickname").as[List[String]].right.value
+    val nickname = boardParsed.headOption.get.hcursor.downField("owner").downField("user_meta").downField("nickname").as[List[String]].right.value
     nickname.headOption.getOrElse("none") must be("1925cabin")
   }
 
   "Property ID" in {
-    val properties = board.headOption.get.hcursor.downField("owner").downField("properties").downField("427541")
+    val properties = boardParsed.headOption.get.hcursor.downField("owner").downField("properties").downField("427541")
       .downField("property_data").downField("property_id").as[Int].right.value
     properties must be(427541)
   }
 
   "No Filter (2 owners)" in {
-    board.size must be(2)
+    boardParsed.size must be(2)
   }
 
   "Filter (1 owner)" in {
-    val filtered = board.filter( x => x.hcursor.downField("owner").downField("ID").as[String].right.value == "44731")
+    val filtered = boardParsed.filter( x => x.hcursor.downField("owner").downField("ID").as[String].right.value == "44731")
     filtered.size must be(1)
   }
 }

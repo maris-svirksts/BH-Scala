@@ -44,9 +44,9 @@ object Practice {
 
   @JsonCodec final case class PropertyRecord(
                                               property_data:     PropertyData,
-                                              comment:           Map[Key, Map[Key, String]],
-                                              comment_meta:      Map[Key, CommentMetaData],
-                                              calendar_data:     List[Map[Key, Option[String]]],
+                                              //comment:           Map[Key, Map[Key, Option[String]]], // TODO: failed when run ownerInfoDecoded.compile.toList.unsafeRunSync()
+                                              //comment_meta:      Map[Key, CommentMetaData], // TODO: need to check why.
+                                              //calendar_data:     List[Map[Key, Option[String]]],
                                               conversation_data: Map[Key, ConversationData]
                                             )
   @JsonCodec final case class PropertyData(
@@ -55,10 +55,10 @@ object Practice {
                                           )
   @JsonCodec final case class PropertyFields(post_title: RecordList) //TODO: Include all fields.
   @JsonCodec final case class CommentMetaData(
-                                               city:      RecordList,
-                                               country:   RecordList,
-                                               rating:    RecordList,
-                                               ticket_id: RecordList
+                                               city:      Option[RecordList],
+                                               country:   Option[RecordList],
+                                               rating:    Option[RecordList],
+                                               ticket_id: Option[RecordList]
                                              )
   @JsonCodec final case class ConversationData(
                                                 id:                Option[String],
