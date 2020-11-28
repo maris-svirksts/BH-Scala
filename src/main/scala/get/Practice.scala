@@ -97,16 +97,18 @@ object Practice {
                                               )
 
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
-    val sources: List[String] = List(
-      "https://www.boutique-homes.com/remote_search/data.json",
-      "https://www.boutique-homes.com/remote_search/data-p2.json"
-    )
+    // Master list for owners. We get the URL's to load from this. Might need to clean up.
+    val masterSrc: Stream[IO, String] = Stream( Http("https://www.boutique-homes.com/remote_search/links.json").asString.body )
+    val masterStream = masterSrc.through(stringArrayParser).compile.toList.unsafeRunSync()
+    val masterList: List[String] = masterStream.headOption.get.hcursor.downField("ownerList").as[List[String]].right.get
 
-    val stringStream: Stream[IO, String] = Stream.emits(sources.map(x => { Http(x).asString.body }))
+    // Go through the individual owner URL's, gather them.
+    val stringStream: Stream[IO, String] = Stream.emits(masterList.map(x => { Http(x).asString.body })).buffer(5)
 
     stringStream.through(stringStreamParser)
   }
 
+  // Decode the data that was parsed within fetchOwnerInfoParsed().
   def fetchOwnerInfoDecoded(): Stream[IO, PropertyOwner] = {
     val parsedStream: Stream[IO, Json] = fetchOwnerInfoParsed()
     parsedStream.through(decoder[IO, PropertyOwner])
