@@ -7,6 +7,7 @@ import org.scalatest.EitherValues
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import Practice._
+import resources._
 
 class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
@@ -48,6 +49,18 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
   "Filter (1 owner)" in {
     val filtered = boardParsed.filter( x => x.hcursor.downField("owner").downField("ID").as[String].right.value == "44731")
+    filtered.size must be(1)
+  }
+
+  "Filter to File, decoded, (1 owner)" in {
+    val filtered = boardDecoded.filter( x => { x.owner.ID == "44731" } )
+
+    val lines: Seq[String] = for {
+      i <- filtered
+    } yield i.owner.ID + ", " + i.owner.display_name
+
+    writeFile("test.csv", lines: Seq[String])
+
     filtered.size must be(1)
   }
 }
