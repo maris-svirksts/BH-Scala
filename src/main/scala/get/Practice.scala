@@ -26,7 +26,7 @@ object Practice {
 
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
     // Master list for owners. We get the URL's to load from this. Might need to clean up.
-    val masterSrc: Stream[IO, String] = Stream( Http("https://www.boutique-homes.com/remote_search/links.json").asString.body )
+    val masterSrc: Stream[IO, String] = Stream( Http("http://127.0.0.1:8080/json/links.json").asString.body )
     val masterStream = masterSrc.through(stringArrayParser).compile.toList.unsafeRunSync()
     val masterList: List[String] = masterStream.headOption.get.hcursor.downField("ownerList").as[List[String]].right.get
 
