@@ -19,32 +19,32 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
   "Owner ID, parsed, first json file" in {
     val ID = boardParsed.headOption.get.hcursor.downField("owner").downField("ID").as[String].right.value
-    ID must be("44731")
+    ID must be("100")
   }
 
   "Owner ID, parsed, second json file" in {
     val ID = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("ID").as[String].right.value
-    ID must be("27524")
+    ID must be("1002")
   }
 
   "Owner ID, decoded, first json file" in {
     val ID = boardDecoded.headOption.get.owner.ID
-    ID must be("44731")
+    ID must be("100")
   }
 
   "User Meta / nickname" in {
     val nickname = boardParsed.headOption.get.hcursor.downField("owner").downField("user_meta").downField("nickname").as[List[String]].right.value
-    nickname.headOption.getOrElse("none") must be("1925cabin")
+    nickname.headOption.getOrElse("none") must be("Hirai")
   }
 
   "Property ID" in {
-    val properties = boardParsed.headOption.get.hcursor.downField("owner").downField("properties").downField("427541")
+    val properties = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("properties").downField("73611")
       .downField("property_data").downField("property_id").as[Int].right.value
-    properties must be(427541)
+    properties must be(73611)
   }
 
   "No Filter (2 owners)" in {
-    boardParsed.size must be(2)
+    boardParsed.size must be(1881)
   }
 
   "Filter (1 owner)" in {
