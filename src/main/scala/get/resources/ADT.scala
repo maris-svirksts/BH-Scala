@@ -1,6 +1,8 @@
-package resources
+package get.resources
 
 import io.circe.generic.JsonCodec
+
+@JsonCodec final case class ExportJson(data: List[List[String]])
 
 @JsonCodec final case class PropertyOwner(owner: UserData)
 

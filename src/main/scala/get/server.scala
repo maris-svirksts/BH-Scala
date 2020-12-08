@@ -31,7 +31,6 @@ object server extends IOApp {
                 |<th>Owner ID</th>
                 |<th>Owner Email</th>
                 |<th>Owner Name</th>
-                |<th>Number of Inquiries</th>
               |</tr>
             |</thead>
             |<tfoot>
@@ -39,14 +38,13 @@ object server extends IOApp {
                 |<th>Owner ID</th>
                 |<th>Owner Email</th>
                 |<th>Owner Name</th>
-                |<th>Number of Inquiries</th>
               |</tr>
             |</tfoot>
           |</table>
           |<script>
           |$(document).ready(function() {
           |$('#results').DataTable( {
-          |"ajax": 'http://127.0.0.1:8080/json/arrays.json'
+          |"ajax": 'http://127.0.0.1:8080/json/results.json'
           |} );
           |} );
           |</script>
@@ -55,7 +53,7 @@ object server extends IOApp {
 
   val routes: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes.of[IO] {
     case request @ GET -> Root / "json" / fileName =>
-      StaticFile.fromFile(new File("I://Repositories/BH-Scala/src/main/scala/get/owners/" + fileName), blocker, Some(request))
+      StaticFile.fromFile(new File("I:/work/Learning/" + fileName), blocker, Some(request))
         .getOrElseF(NotFound()) // In case the file doesn't exist
     case GET -> Root / "results" =>
       Ok(data, `Content-Type`(MediaType.text.html))

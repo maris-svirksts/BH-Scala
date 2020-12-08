@@ -1,15 +1,14 @@
 package get
 
 import cats.effect.IO
-
 import io.circe.Json
 import io.circe.generic.extras._
 import io.circe.fs2._
-
 import fs2.Stream
+import get.resources._
 import scalaj.http.Http
+
 import java.io._
-import resources._
 
 /*
      Bouncing ideas:

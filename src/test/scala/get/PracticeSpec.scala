@@ -3,11 +3,12 @@ package get
 import cats.effect.IO
 import fs2.Stream
 import io.circe.Json
+import io.circe.syntax._
 import org.scalatest.EitherValues
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import Practice._
-import resources._
+import get.resources._
 
 class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
@@ -59,8 +60,23 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       i <- filtered
     } yield i.owner.ID + ", " + i.owner.display_name
 
-    writeFile("test.csv", lines: Seq[String])
+    writeFile("src/main/scala/get/test.csv", lines: Seq[String])
 
     filtered.size must be(1)
+  }
+
+  "Filter to File, decoded, (x owners)" in {
+    val filtered = boardDecoded.filter( x => { x.owner.ID.toInt > 500 } )
+
+    val lines = for {
+      i <- filtered
+      result = List(i.owner.ID, i.owner.user_email, i.owner.display_name)
+    } yield result
+
+    val json = ExportJson(lines).asJson.toString()
+
+    writeFile("src/main/scala/get/results.json", Seq(json))
+
+    filtered.size must be(1581)
   }
 }
