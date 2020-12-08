@@ -10,6 +10,8 @@ import org.scalatest.wordspec.AnyWordSpec
 import Practice._
 import get.resources._
 
+import scala.collection.immutable.{AbstractMap, SeqMap, SortedMap}
+
 class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
   val ownerInfoParsed: Stream[IO, Json]           = fetchOwnerInfoParsed()
@@ -75,8 +77,36 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
     val json = ExportJson(lines).asJson.toString()
 
-    writeFile("src/main/scala/get/results.json", Seq(json))
+    writeFile("owners/results.json", Seq(json))
 
     filtered.size must be(1581)
+  }
+
+  "Filter, decoded, (1 property)" in {
+    val filtered    = boardDecoded.filter( x => {
+      x.owner.properties.getOrElse(Nil).filter(y => {
+        y match {
+          case (key, value) if(value.property_data.property_id == 31171) => true
+          case _ => false
+        }
+      }).size > 0
+    } )
+
+    /*val filtered_v2 = for {
+      i <- boardDecoded
+      properties = for{
+        y <- i.owner.properties.getOrElse(Nil)
+        if(y._2.property_data.property_id == 31171)
+      } yield y
+    } yield ???*/
+
+    val lines: Seq[String] = for {
+      i <- filtered
+    } yield i.owner.ID + ", " + i.owner.display_name + ", " + i.owner.properties.get("401776").property_data.property_fields.post_title
+    // i.owner.properties.get("401776").property_data.property_fields.post_title should fail catastrophically.
+
+    writeFile("src/main/scala/get/test.csv", lines: Seq[String])
+
+    filtered.size must be(1)
   }
 }

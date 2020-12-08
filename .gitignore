@@ -9,6 +9,7 @@
 metals.sbt
 
 target/
+owners/
 
 .DS_Store
 *.csv

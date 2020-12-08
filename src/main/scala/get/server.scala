@@ -2,6 +2,9 @@ package get
 
 import cats.data.Kleisli
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
+import get.Practice.writeFile
+import get.resources.ExportJson
+import io.circe.syntax.EncoderOps
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
@@ -53,9 +56,20 @@ object server extends IOApp {
 
   val routes: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes.of[IO] {
     case request @ GET -> Root / "json" / fileName =>
-      StaticFile.fromFile(new File("I:/work/Learning/" + fileName), blocker, Some(request))
+      StaticFile.fromFile(new File("I:/Repositories/BH/owners/" + fileName), blocker, Some(request))
         .getOrElseF(NotFound()) // In case the file doesn't exist
     case GET -> Root / "results" =>
+      val loader = Practice.fetchOwnerInfoDecoded().compile.toList.unsafeRunSync()
+      val filter = loader.filter(x => {
+        x.owner.ID.toInt > 500
+      })
+      val lines = for {
+        i <- filter
+        result = List(i.owner.ID, i.owner.user_email, i.owner.display_name)
+      } yield result
+      val json = ExportJson(lines).asJson.toString()
+
+      writeFile("owners/results.json", Seq(json))
       Ok(data, `Content-Type`(MediaType.text.html))
   }.orNotFound
 

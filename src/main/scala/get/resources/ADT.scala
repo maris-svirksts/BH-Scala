@@ -7,18 +7,18 @@ import io.circe.generic.JsonCodec
 @JsonCodec final case class PropertyOwner(owner: UserData)
 
 @JsonCodec final case class UserData(
-                                      ID: String,
-                                      user_login: String,
-                                      user_pass: String,
-                                      user_nicename: String,
-                                      user_email: String,
-                                      user_url: String,
-                                      user_registered: String,
+                                      ID:                  String,
+                                      user_login:          String,
+                                      user_pass:           String,
+                                      user_nicename:       String,
+                                      user_email:          String,
+                                      user_url:            String,
+                                      user_registered:     String,
                                       user_activation_key: String,
-                                      user_status: String,
-                                      display_name: String,
-                                      user_meta: UserMeta,
-                                      properties: Option[Map[String, PropertyRecord]]
+                                      user_status:         String,
+                                      display_name:        String,
+                                      user_meta:           UserMeta,
+                                      properties:          Option[Map[String, PropertyRecord]]
                                     )
 
 @JsonCodec final case class UserMeta(
