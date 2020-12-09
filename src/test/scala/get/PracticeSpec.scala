@@ -2,15 +2,13 @@ package get
 
 import cats.effect.IO
 import fs2.Stream
+import get.Practice._
+import get.resources._
 import io.circe.Json
 import io.circe.syntax._
 import org.scalatest.EitherValues
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import Practice._
-import get.resources._
-
-import scala.collection.immutable.{AbstractMap, SeqMap, SortedMap}
 
 class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
@@ -67,7 +65,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     filtered.size must be(1)
   }
 
-  "Filter to File, decoded, (x owners)" in {
+  "Filter to File, decoded, (1581 owners)" in {
     val filtered = boardDecoded.filter( x => { x.owner.ID.toInt > 500 } )
 
     val lines = for {
@@ -82,31 +80,49 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     filtered.size must be(1581)
   }
 
-  "Filter, decoded, (1 property)" in {
+  "Filter, decoded, (1 property), find Owner for property." in {
     val filtered    = boardDecoded.filter( x => {
-      x.owner.properties.getOrElse(Nil).filter(y => {
+      x.owner.properties.getOrElse(Nil).exists(y => {
         y match {
-          case (key, value) if(value.property_data.property_id == 31171) => true
+          case (_, value) if (value.property_data.property_id == 31171) => true
           case _ => false
         }
-      }).size > 0
+      })
     } )
 
-    /*val filtered_v2 = for {
-      i <- boardDecoded
-      properties = for{
-        y <- i.owner.properties.getOrElse(Nil)
-        if(y._2.property_data.property_id == 31171)
-      } yield y
-    } yield ???*/
-
     val lines: Seq[String] = for {
-      i <- filtered
-    } yield i.owner.ID + ", " + i.owner.display_name + ", " + i.owner.properties.get("401776").property_data.property_fields.post_title
-    // i.owner.properties.get("401776").property_data.property_fields.post_title should fail catastrophically.
+      i      <- filtered
+      (_, v) <- i.owner.properties.getOrElse(Nil)
+
+      if v.property_data.property_id == 31171
+    } yield i.owner.ID + ", " + i.owner.display_name + ", " + v.property_data.property_fields.post_title
 
     writeFile("src/main/scala/get/test.csv", lines: Seq[String])
 
     filtered.size must be(1)
+  }
+
+  "Filter, decoded, (483 properties), published_per_night" in {
+    val filtered    = boardDecoded.filter( x => {
+      x.owner.properties.getOrElse(Nil).exists(y => {
+        y match {
+          case (_, value) if (
+            value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) >= 300 && value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) <= 800
+            ) => true
+          case _ => false
+        }
+      })
+    } )
+
+    val lines: Seq[String] = for {
+      i      <- filtered
+      (_, value) <- i.owner.properties.getOrElse(Nil)
+
+      if value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) >= 300 && value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) <= 800
+    } yield i.owner.ID + "\t" + i.owner.display_name + "\t" + value.property_data.property_fields.post_title.getOrElse(Nil).headOption.getOrElse(Some("")).getOrElse("none") + "\t" + value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0")
+
+    writeFile("src/main/scala/get/test1.tsv", lines: Seq[String])
+
+    filtered.size must be(483)
   }
 }
