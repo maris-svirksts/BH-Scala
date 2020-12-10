@@ -3,7 +3,7 @@ package get
 import cats.data.Kleisli
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import get.Practice.writeFile
-import get.resources.ExportJson
+import get.resources.{ExportJson, PropertyOwner}
 import io.circe.syntax.EncoderOps
 import org.http4s._
 import org.http4s.dsl.io._
@@ -17,7 +17,8 @@ import scala.concurrent.ExecutionContext
 
 object server extends IOApp {
   val blockingPool: ExecutorService = Executors.newFixedThreadPool(4)
-  val blocker: Blocker = Blocker.liftExecutorService(blockingPool)
+  val blocker: Blocker              = Blocker.liftExecutorService(blockingPool)
+
   val data: String =
     """
       |<html>
@@ -55,23 +56,40 @@ object server extends IOApp {
       |</html>""".stripMargin
 
   val routes: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes.of[IO] {
-    case request @ GET -> Root / "json" / fileName =>
-      StaticFile.fromFile(new File("I:/Repositories/BH/owners/" + fileName), blocker, Some(request))
-        .getOrElseF(NotFound()) // In case the file doesn't exist
-    case GET -> Root / "results" / queryField / "comparison" / comparison / "compare_against" / compareAgainst =>
-      val loader = Practice.fetchOwnerInfoDecoded().compile.toList.unsafeRunSync()
-      val filter = loader.filter(x => {
-        x.owner.ID.toInt > compareAgainst.toInt
-      })
-      val lines = for {
-        i <- filter
-        result = List(i.owner.ID, i.owner.user_email, i.owner.display_name)
-      } yield result
-      val json = ExportJson(lines).asJson.toString()
+    /*
+     * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from production server.
+     * StaticFile.fromFile version. Leaving it for consideration. TODO: remove after presentation.
+     */
+    case request @ GET -> Root / "json_file_version" / fileName =>
+      StaticFile.fromFile(new File("I:/Repositories/BH/src/main/resources/owners/" + fileName), blocker, Some(request)).getOrElseF(NotFound())
 
-      writeFile("owners/results.json", Seq(json))
+    /*
+     * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from production server.
+     * StaticFile.fromResource version: added after a conversation with Arturs Sengilejevs where he suggested it as an alternative to the version above.
+     */
+    case request @ GET -> Root / "json" / fileName if List(".json").exists(fileName.endsWith) =>
+      static(fileName, blocker, request)
+
+    /*
+     * Query and show the returned results to reader.
+     */
+    case GET -> Root / "results" / queryField / "comparison" / comparison / "compare_against" / compareAgainst =>
+      val loader: List[PropertyOwner] = Practice.fetchOwnerInfoDecoded().compile.toList.unsafeRunSync()
+      val filter: List[PropertyOwner] = loader.filter(x => { x.owner.ID.toInt > compareAgainst.toInt })
+
+      val lines: List[List[String]] = for {
+        i <- filter
+      } yield List(i.owner.ID, i.owner.user_email, i.owner.display_name)
+
+      val json: String = ExportJson(lines).asJson.toString()
+
+      writeFile("src/main/resources/owners/results.json", Seq(json))
       Ok(data, `Content-Type`(MediaType.text.html))
   }.orNotFound
+
+  def static(file: String, blocker: Blocker, request: Request[IO]): IO[Response[IO]] = {
+    StaticFile.fromResource("owners/" + file, blocker, Some(request)).getOrElseF(NotFound())
+  }
 
   def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO](ExecutionContext.global)

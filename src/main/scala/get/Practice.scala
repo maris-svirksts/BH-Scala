@@ -10,19 +10,12 @@ import scalaj.http.Http
 
 import java.io._
 
-/*
-     Bouncing ideas:
-
-     user_meta:           Map[String, RecordList],
-     properties:          Map[String, PropertyRecord]
-
-     PropertyRecord is a case class, RecordList is a List[String] - probably a bad idea, might need to decide on one
-     because the calls to get variables will differ. Or, have case classes for higher levels only. Or, move to Optics?
- */
-
 object Practice {
   implicit val config: Configuration = Configuration.default
 
+  /*
+   * Parse all owner URL's that are provided through master file.
+   */
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
     // Master URL list for owners.
     val masterSrc: Stream[IO, String] = Stream( Http("http://127.0.0.1:8080/json/links.json").asString.body )
@@ -35,7 +28,9 @@ object Practice {
     stringStream.through(stringStreamParser)
   }
 
-  // Decode the data that was parsed within fetchOwnerInfoParsed().
+  /*
+   * Decode the data that was parsed within fetchOwnerInfoParsed().
+   */
   def fetchOwnerInfoDecoded(): Stream[IO, PropertyOwner] = {
     val parsedStream: Stream[IO, Json] = fetchOwnerInfoParsed()
 
@@ -43,7 +38,6 @@ object Practice {
   }
 
   // https://alvinalexander.com/scala/how-to-write-text-files-in-scala-printwriter-filewriter/
-  //
   def writeFile(filename: String, lines: Seq[String]): Unit = {
     val file = new File(filename)
     val bw   = new BufferedWriter(new FileWriter(file))

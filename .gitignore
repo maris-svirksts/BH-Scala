@@ -9,8 +9,7 @@
 metals.sbt
 
 target/
-owners/
 
 .DS_Store
 *.csv
-src/main/scala/get/owners/
+src/main/resources/owners/

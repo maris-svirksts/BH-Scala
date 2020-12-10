@@ -60,7 +60,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       i <- filtered
     } yield i.owner.ID + ", " + i.owner.display_name
 
-    writeFile("src/main/scala/get/test.csv", lines: Seq[String])
+    writeFile("src/main/results/test_p1.csv", lines: Seq[String])
 
     filtered.size must be(1)
   }
@@ -75,7 +75,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
     val json = ExportJson(lines).asJson.toString()
 
-    writeFile("owners/results.json", Seq(json))
+    writeFile("src/main/results/results.json", Seq(json))
 
     filtered.size must be(1581)
   }
@@ -97,7 +97,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       if v.property_data.property_id == 31171
     } yield i.owner.ID + ", " + i.owner.display_name + ", " + v.property_data.property_fields.post_title
 
-    writeFile("src/main/scala/get/test.csv", lines: Seq[String])
+    writeFile("src/main/results/test_p2.csv", lines: Seq[String])
 
     filtered.size must be(1)
   }
@@ -121,7 +121,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       if value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) >= 300 && value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) <= 800
     } yield i.owner.ID + "\t" + i.owner.display_name + "\t" + value.property_data.property_fields.post_title.getOrElse(Nil).headOption.getOrElse(Some("")).getOrElse("none") + "\t" + value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0")
 
-    writeFile("src/main/scala/get/test1.tsv", lines: Seq[String])
+    writeFile("src/main/results/test_p3.tsv", lines: Seq[String])
 
     filtered.size must be(483)
   }
