@@ -19,12 +19,12 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   val boardDecoded: List[PropertyOwner] = ownerInfoDecoded.compile.toList.unsafeRunSync()
 
   "Owner ID, parsed, first json file" in {
-    val ID = boardParsed.headOption.get.hcursor.downField("owner").downField("ID").as[String].right.value
+    val ID = boardParsed.headOption.get.hcursor.downField("owner").downField("ID").as[String].getOrElse("-1")
     ID must be("100")
   }
 
   "Owner ID, parsed, second json file" in {
-    val ID = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("ID").as[String].right.value
+    val ID = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("ID").as[String].getOrElse("-1")
     ID must be("1002")
   }
 
@@ -34,13 +34,13 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   }
 
   "User Meta / nickname" in {
-    val nickname = boardParsed.headOption.get.hcursor.downField("owner").downField("user_meta").downField("nickname").as[List[String]].right.value
+    val nickname = boardParsed.headOption.get.hcursor.downField("owner").downField("user_meta").downField("nickname").as[List[String]].getOrElse(List())
     nickname.headOption.getOrElse("none") must be("Hirai")
   }
 
   "Property ID" in {
     val properties = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("properties").downField("73611")
-      .downField("property_data").downField("property_id").as[Int].right.value
+      .downField("property_data").downField("property_id").as[Int].getOrElse(-1)
     properties must be(73611)
   }
 
@@ -49,7 +49,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   }
 
   "Filter (1 owner)" in {
-    val filtered = boardParsed.filter( x => x.hcursor.downField("owner").downField("ID").as[String].right.value == "44731")
+    val filtered = boardParsed.filter( x => x.hcursor.downField("owner").downField("ID").as[String].getOrElse("-1") == "44731")
     filtered.size must be(1)
   }
 
@@ -84,7 +84,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     val filtered    = boardDecoded.filter( x => {
       x.owner.properties.getOrElse(Nil).exists(y => {
         y match {
-          case (_, value) if (value.property_data.property_id == 31171) => true
+          case (_, value) if value.property_data.property_id == 31171 => true
           case _ => false
         }
       })
@@ -106,9 +106,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     val filtered    = boardDecoded.filter( x => {
       x.owner.properties.getOrElse(Nil).exists(y => {
         y match {
-          case (_, value) if (
-            value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) >= 300 && value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) <= 800
-            ) => true
+          case (_, value) if value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) >= 300 && value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) <= 800 => true
           case _ => false
         }
       })

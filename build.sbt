@@ -26,5 +26,6 @@ libraryDependencies ++= Seq(
   "org.scalaj" %% "scalaj-http" % "2.4.2",
   "org.http4s" %% "http4s-dsl" % http4sVersion,
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+  "org.http4s" %% "http4s-circe" % http4sVersion,
   "org.slf4j" % "slf4j-simple" % slf4jVersion,
 )
