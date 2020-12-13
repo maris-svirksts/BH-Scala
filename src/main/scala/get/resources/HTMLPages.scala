@@ -98,7 +98,8 @@ object HTMLPages {
       |<script>
       |$(document).ready(function() {
       |$('#results').DataTable( {
-      |"ajax": 'http://127.0.0.1:8080/json/results.json'
+      |"ajax": 'http://127.0.0.1:8080/json/results.json',
+      |"deferRender": true
       |} );
       |} );
       |</script>

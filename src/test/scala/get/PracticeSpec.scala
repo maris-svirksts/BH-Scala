@@ -44,8 +44,8 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     properties must be(73611)
   }
 
-  "No Filter (2 owners)" in {
-    boardParsed.size must be(1881)
+  "No Filter (1913 owners)" in {
+    boardParsed.size must be(1913)
   }
 
   "Filter (1 owner)" in {
@@ -65,7 +65,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     filtered.size must be(1)
   }
 
-  "Filter to File, decoded, (1581 owners)" in {
+  "Filter to File, decoded, (1610 owners)" in {
     val filtered = boardDecoded.filter( x => { x.owner.ID > 500 } )
 
     val lines = for {
@@ -77,7 +77,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
     writeFile("src/main/results/results.json", Seq(json))
 
-    filtered.size must be(1581)
+    filtered.size must be(1610)
   }
 
   "Filter, decoded, (1 property), find Owner for property." in {
@@ -102,7 +102,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     filtered.size must be(1)
   }
 
-  "Filter, decoded, (483 properties), published_per_night" in {
+  "Filter, decoded, (484 properties), published_per_night" in {
     val filtered    = boardDecoded.filter( x => {
       x.owner.properties.getOrElse(Nil).exists(y => {
         y match {
@@ -121,6 +121,6 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
     writeFile("src/main/results/test_p3.tsv", lines: Seq[String])
 
-    filtered.size must be(483)
+    filtered.size must be(484)
   }
 }
