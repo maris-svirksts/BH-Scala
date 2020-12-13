@@ -19,18 +19,18 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   val boardDecoded: List[PropertyOwner] = ownerInfoDecoded.compile.toList.unsafeRunSync()
 
   "Owner ID, parsed, first json file" in {
-    val ID = boardParsed.headOption.get.hcursor.downField("owner").downField("ID").as[String].getOrElse("-1")
-    ID must be("100")
+    val ID = boardParsed.headOption.get.hcursor.downField("owner").downField("ID").as[Int].getOrElse(-1)
+    ID must be(100)
   }
 
   "Owner ID, parsed, second json file" in {
-    val ID = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("ID").as[String].getOrElse("-1")
-    ID must be("1002")
+    val ID = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("ID").as[Int].getOrElse(-1)
+    ID must be(1002)
   }
 
   "Owner ID, decoded, first json file" in {
     val ID = boardDecoded.headOption.get.owner.ID
-    ID must be("100")
+    ID must be(100)
   }
 
   "User Meta / nickname" in {
@@ -54,11 +54,11 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   }
 
   "Filter to File, decoded, (1 owner)" in {
-    val filtered = boardDecoded.filter( x => { x.owner.ID == "44731" } )
+    val filtered = boardDecoded.filter( x => { x.owner.ID == 44731 } )
 
     val lines: Seq[String] = for {
       i <- filtered
-    } yield i.owner.ID + ", " + i.owner.display_name
+    } yield i.owner.ID.toString + ", " + i.owner.display_name
 
     writeFile("src/main/results/test_p1.csv", lines: Seq[String])
 
@@ -66,11 +66,11 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   }
 
   "Filter to File, decoded, (1581 owners)" in {
-    val filtered = boardDecoded.filter( x => { x.owner.ID.toInt > 500 } )
+    val filtered = boardDecoded.filter( x => { x.owner.ID > 500 } )
 
     val lines = for {
       i <- filtered
-      result = List(i.owner.ID, i.owner.user_email, i.owner.display_name)
+      result = List(i.owner.ID.toString, i.owner.user_email, i.owner.display_name)
     } yield result
 
     val json = ExportJson(lines).asJson.toString()
@@ -95,7 +95,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       (_, v) <- i.owner.properties.getOrElse(Nil)
 
       if v.property_data.property_id == 31171
-    } yield i.owner.ID + ", " + i.owner.display_name + ", " + v.property_data.property_fields.post_title
+    } yield i.owner.ID.toString + ", " + i.owner.display_name + ", " + v.property_data.property_fields.post_title
 
     writeFile("src/main/results/test_p2.csv", lines: Seq[String])
 
@@ -113,7 +113,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     } )
 
     val lines: Seq[String] = for {
-      i      <- filtered
+      i          <- filtered
       (_, value) <- i.owner.properties.getOrElse(Nil)
 
       if value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) >= 300 && value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) <= 800

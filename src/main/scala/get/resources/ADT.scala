@@ -8,7 +8,7 @@ import io.circe.generic.JsonCodec
 @JsonCodec final case class PropertyOwner(owner: UserData)
 
 @JsonCodec final case class UserData(
-                                      ID:                  String,
+                                      ID:                  Int,
                                       user_login:          String,
                                       user_pass:           String,
                                       user_nicename:       String,
@@ -26,7 +26,7 @@ import io.circe.generic.JsonCodec
                                       nickname:                  OptionalList[String],
                                       first_name:                OptionalList[String],
                                       last_name:                 OptionalList[String],
-                                      wp_user_level:             OptionalList[String],
+                                      wp_user_level:             OptionalList[Int],
                                       bhome_switch_notification: OptionalList[String],
                                       company_data:              OptionalList[String],
                                       company_name:              OptionalList[String],
