@@ -80,7 +80,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     filtered.size must be(1610)
   }
 
-  "Filter, decoded, (1 property), find Owner for property." in {
+  "Filter, decoded, (1 owner), find Owner for property." in {
     val filtered    = boardDecoded.filter( x => {
       x.owner.properties.getOrElse(Nil).exists(y => {
         y match {
@@ -102,7 +102,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     filtered.size must be(1)
   }
 
-  "Filter, decoded, (484 properties), published_per_night" in {
+  "Filter, decoded, (484 owners), published_per_night" in {
     val filtered    = boardDecoded.filter( x => {
       x.owner.properties.getOrElse(Nil).exists(y => {
         y match {
@@ -122,5 +122,25 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     writeFile("src/main/results/test_p3.tsv", lines: Seq[String])
 
     filtered.size must be(484)
+  }
+
+  "Filter, decoded, (1074 owners), Owners with active properties" in {
+    val filtered    = boardDecoded.filter( x => {
+      x.owner.properties.getOrElse(Nil).exists {
+        case (_, value) if value.property_data.property_fields.post_status.get.head.getOrElse("") == "publish" => true
+        case _ => false
+      }
+    } )
+
+    val lines: Seq[String] = for {
+      i          <- filtered
+      (_, value) <- i.owner.properties.getOrElse(Nil)
+
+      if value.property_data.property_fields.post_status.getOrElse(List()).headOption.get.getOrElse("") == "publish"
+    } yield value.property_data.property_fields.post_title + "\t" + value.property_data.property_id
+
+    writeFile("src/main/results/test_p4.tsv", lines: Seq[String])
+
+    filtered.size must be(1074)
   }
 }
