@@ -1,4 +1,4 @@
-package get.resources
+package server.resources
 
 object HTMLPages {
   val query: String =

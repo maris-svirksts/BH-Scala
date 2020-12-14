@@ -1,11 +1,11 @@
-package get
+package json
 
 import cats.effect.IO
 import fs2.Stream
-import get.Practice._
-import get.resources._
 import io.circe.Json
 import io.circe.syntax._
+import json.Practice._
+import json.resources.ADT._
 import org.scalatest.EitherValues
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec

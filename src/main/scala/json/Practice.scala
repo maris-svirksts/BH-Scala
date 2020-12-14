@@ -1,14 +1,14 @@
-package get
+package json
 
 import cats.effect.IO
 import fs2.Stream
-import get.resources._
 import io.circe.Json
-import io.circe.fs2._
-import io.circe.generic.extras._
+import io.circe.fs2.{decoder, stringArrayParser, stringStreamParser}
+import io.circe.generic.extras.Configuration
+import json.resources.ADT.PropertyOwner
 import scalaj.http.Http
 
-import java.io._
+import java.io.{BufferedWriter, File, FileWriter}
 
 object Practice {
   implicit val config: Configuration = Configuration.default
@@ -18,12 +18,14 @@ object Practice {
    */
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
     // Master URL list for owners.
-    val masterSrc: Stream[IO, String] = Stream( Http("http://127.0.0.1:8080/json/links.json").asString.body )
-    val masterStream                  = masterSrc.through(stringArrayParser).compile.toList.unsafeRunSync()
-    val masterList: List[String]      = masterStream.headOption.get.hcursor.downField("ownerList").as[List[String]].getOrElse(List())
+    val masterSrc: Stream[IO, String] = Stream(Http("http://127.0.0.1:8080/json/links.json").asString.body)
+    val masterStream = masterSrc.through(stringArrayParser).compile.toList.unsafeRunSync()
+    val masterList: List[String] = masterStream.headOption.get.hcursor.downField("ownerList").as[List[String]].getOrElse(List())
 
     // Known data about all property owners.
-    val stringStream: Stream[IO, String] = Stream.emits(masterList.map(x => { Http(x).asString.body }))
+    val stringStream: Stream[IO, String] = Stream.emits(masterList.map(x => {
+      Http(x).asString.body
+    }))
 
     stringStream.through(stringStreamParser)
   }
@@ -40,7 +42,7 @@ object Practice {
   // https://alvinalexander.com/scala/how-to-write-text-files-in-scala-printwriter-filewriter/
   def writeFile(filename: String, lines: Seq[String]): Unit = {
     val file = new File(filename)
-    val bw   = new BufferedWriter(new FileWriter(file))
+    val bw = new BufferedWriter(new FileWriter(file))
 
     for (line <- lines) {
       bw.write(line)
