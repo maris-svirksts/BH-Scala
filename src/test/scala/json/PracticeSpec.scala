@@ -19,29 +19,42 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   val boardDecoded: List[PropertyOwner] = ownerInfoDecoded.compile.toList.unsafeRunSync()
 
   "Owner ID, parsed, first json file" in {
-    val ID = boardParsed.headOption.get.hcursor.downField("owner").downField("ID").as[Int].getOrElse(-1)
-    ID must be(100)
+    val ID = boardParsed.headOption.flatMap(x => Some(
+      x.hcursor.downField("owner").downField("ID").as[Int]
+    )).getOrElse(Left(-1))
+
+    ID must be(Right(100))
   }
 
   "Owner ID, parsed, second json file" in {
-    val ID = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("ID").as[Int].getOrElse(-1)
-    ID must be(1002)
+    val ID = boardParsed.tail.headOption.flatMap(x => Some(
+      x.hcursor.downField("owner").downField("ID").as[Int]
+    )).getOrElse(Left(-1))
+
+    ID must be(Right(1002))
   }
 
   "Owner ID, decoded, first json file" in {
-    val ID = boardDecoded.headOption.get.owner.ID
+    val ID: Int = boardDecoded.headOption.flatMap(x => Some(x.owner.ID)).getOrElse(-1)
+
     ID must be(100)
   }
 
   "User Meta / nickname" in {
-    val nickname = boardParsed.headOption.get.hcursor.downField("owner").downField("user_meta").downField("nickname").as[List[String]].getOrElse(List())
-    nickname.headOption.getOrElse("none") must be("Hirai")
+    val nickname = boardParsed.headOption.flatMap(x => Some(
+      x.hcursor.downField("owner").downField("user_meta").downField("nickname").as[List[String]])
+    ).getOrElse(Left(List("none")))
+
+    nickname must be(Right(List("Hirai")))
   }
 
   "Property ID" in {
-    val properties = boardParsed.tail.headOption.get.hcursor.downField("owner").downField("properties").downField("73611")
-      .downField("property_data").downField("property_id").as[Int].getOrElse(-1)
-    properties must be(73611)
+    val properties = boardParsed.tail.headOption.flatMap(x => Some(
+      x.hcursor.downField("owner").downField("properties").downField("73611")
+      .downField("property_data").downField("property_id").as[Int])
+    ).getOrElse(Left(-1))
+
+    properties must be(Right(73611))
   }
 
   "No Filter (1913 owners)" in {
@@ -50,6 +63,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
   "Filter (1 owner)" in {
     val filtered = boardParsed.filter( x => x.hcursor.downField("owner").downField("ID").as[String].getOrElse("-1") == "44731")
+
     filtered.size must be(1)
   }
 
