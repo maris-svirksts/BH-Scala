@@ -8,7 +8,7 @@ import json.resources.ADT.{ExportJson, PropertyOwner}
 import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.blaze.BlazeServerBuilder
-import resources.HTMLPages.{data, query}
+import resources.HTMLPages.{ReturnData, query}
 import org.http4s._
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 
@@ -17,7 +17,7 @@ import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.ExecutionContext
 
 object server extends IOApp {
-  val blockingPool: ExecutorService = Executors.newFixedThreadPool(4)
+  val blockingPool: ExecutorService = Executors.newFixedThreadPool(8)
   val blocker: Blocker = Blocker.liftExecutorService(blockingPool)
 
   val routes: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes.of[IO] {
@@ -67,11 +67,16 @@ object server extends IOApp {
         i <- filter
       } yield List(i.owner.ID.toString, i.owner.user_email, i.owner.display_name)
 
+      /*
+       * The results are saved into file for the following reasons:
+       * - create a history trail of the results received.
+       * - a clean way to provide data to DataTables (https://datatables.net/) script.
+       */
       val json: String = ExportJson(lines).asJson.toString()
+      val filterHistoryFileName: String = (System.currentTimeMillis / 1000) + ".json"
+      writeFile("I:/owners/" + filterHistoryFileName, Seq(json))
 
-      writeFile("I:/owners/results.json", Seq(json))
-
-      Ok(data, `Content-Type`(MediaType.text.html))
+      Ok(ReturnData(filterHistoryFileName), `Content-Type`(MediaType.text.html))
   }.orNotFound
 
   def static(file: String, blocker: Blocker, request: Request[IO]): IO[Response[IO]] = {

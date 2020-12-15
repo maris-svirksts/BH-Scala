@@ -51,4 +51,8 @@ object Practice {
 
     bw.close()
   }
+
+  def getValue(value: Option[List[Option[String]]]): String = {
+    value.getOrElse(List(Some(""))).headOption.getOrElse(Some("")).getOrElse("")
+  }
 }

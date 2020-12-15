@@ -127,7 +127,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   "Filter, decoded, (1074 owners), Owners with active properties" in {
     val filtered    = boardDecoded.filter( x => {
       x.owner.properties.getOrElse(Nil).exists {
-        case (_, value) if value.property_data.property_fields.post_status.get.head.getOrElse("") == "publish" => true
+        case (_, value) if getValue(value.property_data.property_fields.post_status) == "publish" => true
         case _ => false
       }
     } )
@@ -136,8 +136,16 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       i          <- filtered
       (_, value) <- i.owner.properties.getOrElse(Nil)
 
-      if value.property_data.property_fields.post_status.getOrElse(List()).headOption.get.getOrElse("") == "publish"
-    } yield value.property_data.property_fields.post_title + "\t" + value.property_data.property_id
+      if getValue(value.property_data.property_fields.post_status) == "publish"
+      shortCode = value.property_data.property_fields
+    } yield getValue(shortCode.post_title) + "\t" +
+      value.property_data.property_id + "\t" +
+      getValue(shortCode.User_Name_BH) + "\t" +
+      getValue(shortCode.User_SurName_BH) + "\t" +
+      getValue(shortCode.E_Mail_BH) + "\t" +
+      getValue(shortCode.country)  + "\t" +
+      getValue(shortCode.License_variant)  + "\t" +
+      getValue(shortCode.post_status)
 
     writeFile("src/main/results/test_p4.tsv", lines: Seq[String])
 

@@ -66,8 +66,8 @@ object HTMLPages {
       |</body>
       |</html>""".stripMargin
 
-  val data: String =
-    """
+  def ReturnData(fileName: String): String =
+    s"""
       |<!doctype html>
       |<html lang="en">
       |<head>
@@ -96,9 +96,9 @@ object HTMLPages {
       |<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
       |<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
       |<script>
-      |$(document).ready(function() {
-      |$('#results').DataTable( {
-      |"ajax": 'http://127.0.0.1:8080/json/results.json',
+      |jQuery(document).ready(function() {
+      |jQuery('#results').DataTable( {
+      |"ajax": 'http://127.0.0.1:8080/json/$fileName',
       |"deferRender": true
       |} );
       |} );
