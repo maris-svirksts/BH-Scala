@@ -4,6 +4,7 @@ import cats.data.Kleisli
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import io.circe.syntax._
 import json.Practice._
+import json.resources.ADT
 import json.resources.ADT.{ExportJson, PropertyOwner}
 import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Type`
@@ -44,6 +45,8 @@ object server extends IOApp {
 
     /*
      * Get and show the returned results to reader.
+     *
+     * NOTE: This is a 'proof of concept' version. At this point in time I don't need it for anything.
      */
     case GET -> Root / "results" :? dt =>
       val compareAgainst: Int = dt.getOrElse("compareAgainst", Seq()).headOption.getOrElse("0").toIntOption.getOrElse(0)
@@ -63,9 +66,10 @@ object server extends IOApp {
         }
       })
 
-      val lines: List[List[String]] = for {
-        i <- filter
-      } yield List(i.owner.ID.toString, i.owner.user_email, i.owner.display_name)
+      val lines: List[List[String]] = filter.map(x => {
+        val owner: ADT.UserData = x.owner
+        List(owner.ID.toString, owner.user_email, owner.display_name)
+      })
 
       /*
        * The results are saved into file for the following reasons:
