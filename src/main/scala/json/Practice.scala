@@ -18,14 +18,18 @@ object Practice {
    */
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
     // Master URL list for owners.
-    val masterSrc: Stream[IO, String] = Stream(Http("http://127.0.0.1:8080/json/links.json").asString.body)
+    val masterSrc: Stream[IO, String] = Stream(Http("http://0.0.0.0:8080/json/links.json").asString.body)
     val masterStream = masterSrc.through(stringArrayParser).compile.toList.unsafeRunSync()
-    val masterList: List[String] = masterStream.headOption.get.hcursor.downField("ownerList").as[List[String]].getOrElse(List())
+    val masterList: List[String] = masterStream.flatMap(x => {
+      x.hcursor.downField("ownerList").as[List[String]].getOrElse(List())
+    })
 
-    // Known data about all property owners.
-    val stringStream: Stream[IO, String] = Stream.emits(masterList.map(x => {
+    /*
+     * Read in all known data about all property owners.
+     */
+    val stringStream: Stream[IO, String] = Stream.emits(masterList).map(x => {
       Http(x).asString.body
-    }))
+    })
 
     stringStream.through(stringStreamParser)
   }
@@ -53,6 +57,6 @@ object Practice {
   }
 
   def getValue(value: Option[List[Option[String]]]): String = {
-    value.getOrElse(List(Some(""))).headOption.getOrElse(Some("")).getOrElse("")
+    value.flatMap(x => x.headOption.flatten).getOrElse("")
   }
 }

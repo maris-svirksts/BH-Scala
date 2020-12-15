@@ -49,20 +49,23 @@ object server extends IOApp {
      * NOTE: This is a 'proof of concept' version. At this point in time I don't need it for anything.
      */
     case GET -> Root / "results" :? dt =>
-      val compareAgainst: Int = dt.getOrElse("compareAgainst", Seq()).headOption.getOrElse("0").toIntOption.getOrElse(0)
-      val comparison: String = dt.getOrElse("comparison", Seq()).headOption.getOrElse("equal")
-      val queryField: String = dt.getOrElse("queryField", Seq()).headOption.getOrElse("ID")
+      val compareAgainst: Int = dt.get("compareAgainst").flatMap(x => x.headOption.flatMap(y => y.toIntOption)).getOrElse(0)
+      val comparison: String = dt.get("comparison").flatMap(x => x.headOption).getOrElse("equal")
+      val queryField: String = dt.get("queryField").flatMap(x => x.headOption).getOrElse("ID")
 
       val loader: List[PropertyOwner] = fetchOwnerInfoDecoded().compile.toList.unsafeRunSync()
       val filter: List[PropertyOwner] = loader.filter(x => {
-        val compareThis = if (queryField == "ID") x.owner.ID else x.owner.user_meta.wp_user_level.getOrElse(List()).headOption.get.get
+        val compareThis = {
+          if (queryField == "ID") Some(x.owner.ID)
+          else x.owner.user_meta.wp_user_level.flatMap(_.headOption.flatten)
+        }
 
         comparison match {
-          case "larger" => compareThis > compareAgainst
-          case "largerEqual" => compareThis >= compareAgainst
-          case "smaller" => compareThis < compareAgainst
-          case "smallerEqual" => compareThis <= compareAgainst
-          case _ => compareThis == compareAgainst
+          case "larger" => compareThis.forall(_ > compareAgainst)
+          case "largerEqual" => compareThis.forall(_ >= compareAgainst)
+          case "smaller" =>compareThis.forall(_ < compareAgainst)
+          case "smallerEqual" => compareThis.forall(_ <= compareAgainst)
+          case _ => compareThis.forall(_ == compareAgainst)
         }
       })
 
@@ -75,7 +78,12 @@ object server extends IOApp {
        * The results are saved into file for the following reasons:
        * - create a history trail of the results received.
        * - a clean way to provide data to DataTables (https://datatables.net/) script.
+       *
+       * Note that the filename is not 100% unique at the moment. If there is a need for such,
+       * File.createTempFile(String prefix, String suffix, File directory)
+       * could be used.
        */
+
       val json: String = ExportJson(lines).asJson.toString()
       val filterHistoryFileName: String = (System.currentTimeMillis / 1000) + ".json"
       writeFile("I:/owners/" + filterHistoryFileName, Seq(json))
@@ -89,7 +97,7 @@ object server extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO](ExecutionContext.global)
-      .bindHttp(8080, "localhost")
+      .bindHttp(8080, "0.0.0.0")
       .withHttpApp(routes)
       .serve
       .compile

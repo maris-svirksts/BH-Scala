@@ -92,10 +92,10 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
     val lines: Seq[String] = for {
       i      <- filtered
-      (_, v) <- i.owner.properties.getOrElse(Nil)
+      (_, value) <- i.owner.properties.getOrElse(Nil)
 
-      if v.property_data.property_id == 31171
-    } yield i.owner.ID.toString + ", " + i.owner.display_name + ", " + v.property_data.property_fields.post_title
+      if value.property_data.property_id == 31171
+    } yield i.owner.ID.toString + ", " + i.owner.display_name + ", " + getValue(value.property_data.property_fields.post_title)
 
     writeFile("src/main/results/test_p2.csv", lines: Seq[String])
 
@@ -106,7 +106,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     val filtered    = boardDecoded.filter( x => {
       x.owner.properties.getOrElse(Nil).exists(y => {
         y match {
-          case (_, value) if value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) >= 300 && value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) <= 800 => true
+          case (_, value) if getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) >= 300 && getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) <= 800 => true
           case _ => false
         }
       })
@@ -116,8 +116,9 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       i          <- filtered
       (_, value) <- i.owner.properties.getOrElse(Nil)
 
-      if value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) >= 300 && value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0").toIntOption.getOrElse(0) <= 800
-    } yield i.owner.ID + "\t" + i.owner.display_name + "\t" + value.property_data.property_fields.post_title.getOrElse(Nil).headOption.getOrElse(Some("")).getOrElse("none") + "\t" + value.property_data.property_fields.published_per_night.getOrElse(List()).headOption.getOrElse(Some("0")).getOrElse("0")
+      shortCode = value.property_data.property_fields
+      if getValue(shortCode.published_per_night).toIntOption.getOrElse(0) >= 300 && getValue(shortCode.published_per_night).toIntOption.getOrElse(0) <= 800
+    } yield i.owner.ID + "\t" + i.owner.display_name + "\t" + getValue(shortCode.post_title) + "\t" + getValue(shortCode.published_per_night)
 
     writeFile("src/main/results/test_p3.tsv", lines: Seq[String])
 
