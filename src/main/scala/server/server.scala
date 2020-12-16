@@ -22,14 +22,14 @@ object server extends IOApp {
   val blocker: Blocker = Blocker.liftExecutorService(blockingPool)
 
   val routes: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes.of[IO] {
-    /*
+    /**
      * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from production server.
      * StaticFile.fromFile version.
      */
     case request@GET -> Root / "json" / fileName =>
       StaticFile.fromFile(new File("I:/owners/" + fileName), blocker, Some(request)).getOrElseF(NotFound())
 
-    /*
+    /**
      * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from production server.
      * StaticFile.fromResource version: added after a conversation with Arturs Sengilejevs where he suggested it as an alternative to the version above.
      * It has a caching like behavior: bad for this use case. Quote from Arturs: "It is not really cache. It is magical java classloading mechanism."
@@ -37,13 +37,13 @@ object server extends IOApp {
     case request@GET -> Root / "json_resource_version" / fileName if List(".json").exists(fileName.endsWith) =>
       static(fileName, blocker, request)
 
-    /*
+    /**
      * Create the user query.
      */
     case GET -> Root / "query" =>
       Ok(query, `Content-Type`(MediaType.text.html))
 
-    /*
+    /**
      * Get and show the returned results to reader.
      *
      * NOTE: This is a 'proof of concept' version. At this point in time I don't need it for anything.
@@ -74,7 +74,7 @@ object server extends IOApp {
         List(owner.ID.toString, owner.user_email, owner.display_name)
       })
 
-      /*
+      /**
        * The results are saved into file for the following reasons:
        * - create a history trail of the results received.
        * - a clean way to provide data to DataTables (https://datatables.net/) script.
@@ -86,7 +86,7 @@ object server extends IOApp {
 
       val json: String = ExportJson(lines).asJson.toString()
       val filterHistoryFileName: String = (System.currentTimeMillis / 1000) + ".json"
-      writeFile("I:/owners/" + filterHistoryFileName, Seq(json))
+      writePhysicalFile("I:/owners/" + filterHistoryFileName, Seq(json))
 
       Ok(ReturnData(filterHistoryFileName), `Content-Type`(MediaType.text.html))
   }.orNotFound

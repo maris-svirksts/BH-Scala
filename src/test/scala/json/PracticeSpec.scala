@@ -70,11 +70,11 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   "Filter to File, decoded, (1 owner)" in {
     val filtered = boardDecoded.filter( x => { x.owner.ID == 44731 } )
 
-    val lines: Seq[String] = for {
+    val lines: Seq[List[String]] = for {
       i <- filtered
-    } yield i.owner.ID.toString + ", " + i.owner.display_name
+    } yield List(i.owner.ID.toString, i.owner.display_name)
 
-    writeFile("src/main/results/test_p1.csv", lines: Seq[String])
+    writeFile(lines, "src/main/results/test_p1.csv", ", ")
 
     filtered.size must be(1)
   }
@@ -89,7 +89,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
 
     val json = ExportJson(lines).asJson.toString()
 
-    writeFile("src/main/results/results.json", Seq(json))
+    writePhysicalFile("src/main/results/results.json", Seq(json))
 
     filtered.size must be(1610)
   }
@@ -104,14 +104,14 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       })
     } )
 
-    val lines: Seq[String] = for {
+    val lines: Seq[List[String]] = for {
       i      <- filtered
       (_, value) <- i.owner.properties.getOrElse(Nil)
 
       if value.property_data.property_id == 31171
-    } yield i.owner.ID.toString + ", " + i.owner.display_name + ", " + getValue(value.property_data.property_fields.post_title)
+    } yield List(i.owner.ID.toString, i.owner.display_name, getValue(value.property_data.property_fields.post_title))
 
-    writeFile("src/main/results/test_p2.csv", lines: Seq[String])
+    writeFile(lines, "src/main/results/test_p2.csv", ", ")
 
     filtered.size must be(1)
   }
@@ -126,15 +126,15 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       })
     } )
 
-    val lines: Seq[String] = for {
+    val lines: Seq[List[String]] = for {
       i          <- filtered
       (_, value) <- i.owner.properties.getOrElse(Nil)
 
       shortCode = value.property_data.property_fields
       if getValue(shortCode.published_per_night).toIntOption.getOrElse(0) >= 300 && getValue(shortCode.published_per_night).toIntOption.getOrElse(0) <= 800
-    } yield i.owner.ID + "\t" + i.owner.display_name + "\t" + getValue(shortCode.post_title) + "\t" + getValue(shortCode.published_per_night)
+    } yield List(i.owner.ID.toString,i.owner.display_name,getValue(shortCode.post_title),getValue(shortCode.published_per_night))
 
-    writeFile("src/main/results/test_p3.tsv", lines: Seq[String])
+    writeFile(lines, "src/main/results/test_p3.tsv", "\t")
 
     filtered.size must be(484)
   }
@@ -147,22 +147,22 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       }
     } )
 
-    val lines: Seq[String] = for {
+    val lines: Seq[List[String]] = for {
       i          <- filtered
       (_, value) <- i.owner.properties.getOrElse(Nil)
 
       if getValue(value.property_data.property_fields.post_status) == "publish"
       shortCode = value.property_data.property_fields
-    } yield getValue(shortCode.post_title) + "\t" +
-      value.property_data.property_id + "\t" +
-      getValue(shortCode.User_Name_BH) + "\t" +
-      getValue(shortCode.User_SurName_BH) + "\t" +
-      getValue(shortCode.E_Mail_BH) + "\t" +
-      getValue(shortCode.country)  + "\t" +
-      getValue(shortCode.License_variant)  + "\t" +
-      getValue(shortCode.post_status)
+    } yield List(getValue(shortCode.post_title),
+      value.property_data.property_id.toString,
+      getValue(shortCode.User_Name_BH),
+      getValue(shortCode.User_SurName_BH),
+      getValue(shortCode.E_Mail_BH),
+      getValue(shortCode.country),
+      getValue(shortCode.License_variant),
+      getValue(shortCode.post_status))
 
-    writeFile("src/main/results/test_p4.tsv", lines: Seq[String])
+    writeFile(lines, "src/main/results/test_p4.tsv", "\t")
 
     filtered.size must be(1074)
   }

@@ -13,19 +13,21 @@ import java.io.{BufferedWriter, File, FileWriter}
 object Practice {
   implicit val config: Configuration = Configuration.default
 
-  /*
+  /**
+   * @return - parsed JSON for all accounts.
+   *
    * Parse all owner URL's that are provided through master file.
    */
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
-    // Master URL list for owners.
+    // Master URL list for accounts.
     val masterSrc: Stream[IO, String] = Stream(Http("http://0.0.0.0:8080/json/links.json").asString.body)
-    val masterStream = masterSrc.through(stringArrayParser).compile.toList.unsafeRunSync()
-    val masterList: List[String] = masterStream.flatMap(x => {
+    val masterStream                  = masterSrc.through(stringArrayParser).compile.toList.unsafeRunSync()
+    val masterList: List[String]      = masterStream.flatMap(x => {
       x.hcursor.downField("ownerList").as[List[String]].getOrElse(List())
     })
 
-    /*
-     * Read in all known data about all property owners.
+    /**
+     * Read in all known data about all accounts.
      */
     val stringStream: Stream[IO, String] = Stream.emits(masterList).map(x => {
       Http(x).asString.body
@@ -34,7 +36,9 @@ object Practice {
     stringStream.through(stringStreamParser)
   }
 
-  /*
+  /**
+   * @return - Decoded JSON.
+   *
    * Decode the data that was parsed within fetchOwnerInfoParsed().
    */
   def fetchOwnerInfoDecoded(): Stream[IO, PropertyOwner] = {
@@ -43,10 +47,15 @@ object Practice {
     parsedStream.through(decoder[IO, PropertyOwner])
   }
 
-  // https://alvinalexander.com/scala/how-to-write-text-files-in-scala-printwriter-filewriter/
-  def writeFile(filename: String, lines: Seq[String]): Unit = {
-    val file = new File(filename)
-    val bw = new BufferedWriter(new FileWriter(file))
+  /**
+   * @param fileName - file identifier.
+   * @param lines - data to save.
+   *
+   * https://alvinalexander.com/scala/how-to-write-text-files-in-scala-printwriter-filewriter/
+   */
+  def writePhysicalFile(fileName: String, lines: Seq[String]): Unit = {
+    val file: File         = new File(fileName)
+    val bw: BufferedWriter = new BufferedWriter(new FileWriter(file))
 
     for (line <- lines) {
       bw.write(line)
@@ -56,7 +65,24 @@ object Practice {
     bw.close()
   }
 
+  /**
+   * @param value - ADT element that corresponds to the type defined below.
+   * @return - ADT element value.
+   *
+   * Shortcode and error protection for filter data fields.
+   */
   def getValue(value: Option[List[Option[String]]]): String = {
     value.flatMap(x => x.headOption.flatten).getOrElse("")
+  }
+
+  /**
+   * @param data - data to save.
+   * @param fileName - file identifier.
+   * @param separator - defines what kind of data it will be: ", " - CSV, "\t" - TSV.
+   */
+  def writeFile(data: Seq[List[String]], fileName: String, separator: String): Unit = {
+    val processedData: Seq[String] = data.map(x => x.foldLeft("")((left, right) => left + separator + right))
+
+    writePhysicalFile(fileName, processedData)
   }
 }
