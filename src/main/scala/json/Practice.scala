@@ -23,7 +23,7 @@ object Practice {
    */
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
     // Master URL list for accounts.
-    val masterSrc: Stream[IO, String] = Stream(Http("http://[::]:8080/json/links.json").asString.body)
+    val masterSrc: Stream[IO, String] = Stream(Http("http://localhost:8080/json/links.json").asString.body)
     val masterStream = masterSrc.through(stringArrayParser).compile.toList.unsafeRunSync()
     val masterList: List[String] = masterStream.flatMap(x => {
       x.hcursor.downField("ownerList").as[List[String]].getOrElse(List())
