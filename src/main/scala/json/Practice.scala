@@ -1,6 +1,9 @@
 package json
 
 import cats.effect.IO
+import com.norbitltd.spoiwo.model._
+import com.norbitltd.spoiwo.model.enums.CellFill
+import com.norbitltd.spoiwo.natures.xlsx.Model2XlsxConversions._
 import fs2.Stream
 import io.circe.Json
 import io.circe.fs2.{decoder, stringArrayParser, stringStreamParser}
@@ -14,7 +17,7 @@ object Practice {
   implicit val config: Configuration = Configuration.default
 
   /**
-   * @return - parsed JSON for all accounts.
+   * @return parsed JSON for all accounts.
    *
    * Parse all owner URL's that are provided through master file.
    */
@@ -37,7 +40,7 @@ object Practice {
   }
 
   /**
-   * @return - Decoded JSON.
+   * @return Decoded JSON.
    *
    * Decode the data that was parsed within fetchOwnerInfoParsed().
    */
@@ -48,8 +51,8 @@ object Practice {
   }
 
   /**
-   * @param fileName - file identifier.
-   * @param lines - data to save.
+   * @param fileName file identifier.
+   * @param lines data to save.
    *
    * https://alvinalexander.com/scala/how-to-write-text-files-in-scala-printwriter-filewriter/
    */
@@ -66,8 +69,8 @@ object Practice {
   }
 
   /**
-   * @param value - ADT element that corresponds to the type defined below.
-   * @return - ADT element value.
+   * @param value ADT element that corresponds to the type defined below.
+   * @return ADT element value.
    *
    * Shortcode and error protection for filter data fields.
    */
@@ -76,13 +79,27 @@ object Practice {
   }
 
   /**
-   * @param data - data to save.
-   * @param fileName - file identifier.
-   * @param separator - defines what kind of data it will be: ", " - CSV, "\t" - TSV.
+   * @param data data to save.
+   * @param fileName file identifier.
+   * @param separator defines what kind of data it will be: ", " - CSV, "\t" - TSV.
    */
-  def writeFile(data: Seq[List[String]], fileName: String, separator: String): Unit = {
+  def writeTextFile(data: Seq[List[String]], fileName: String, separator: String): Unit = {
     val processedData: Seq[String] = data.map(x => x.foldLeft("")((left, right) => left + separator + right))
 
     writePhysicalFile(fileName, processedData)
+  }
+
+  /**
+   * @param data data to save.
+   * @param fileName file identifier.
+   */
+  def writeExcelFile(data: Seq[List[String]], fileName: String, headerData: List[String]): Unit = {
+    val headerStyle =
+      CellStyle(fillPattern = CellFill.Solid, fillForegroundColor = Color.AquaMarine, font = Font(bold = true))
+
+    val preparedSheet = Sheet(name = "Filtered Results")
+      .withRows(Row(style = headerStyle).withCellValues(headerData) +: data.map(x => Row().withCellValues(x)))
+
+    preparedSheet.saveAsXlsx("src/main/results/" + fileName + ".xlsx")
   }
 }

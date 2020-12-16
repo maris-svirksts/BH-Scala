@@ -28,4 +28,5 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-circe" % http4sVersion,
   "org.slf4j" % "slf4j-simple" % slf4jVersion,
+  "com.norbitltd" % "spoiwo_2.13" % "1.8.0",
 )

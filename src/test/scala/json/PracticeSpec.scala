@@ -74,7 +74,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       i <- filtered
     } yield List(i.owner.ID.toString, i.owner.display_name)
 
-    writeFile(lines, "src/main/results/test_p1.csv", ", ")
+    writeTextFile(lines, "src/main/results/test_p1.csv", ", ")
 
     filtered.size must be(1)
   }
@@ -111,7 +111,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       if value.property_data.property_id == 31171
     } yield List(i.owner.ID.toString, i.owner.display_name, getValue(value.property_data.property_fields.post_title))
 
-    writeFile(lines, "src/main/results/test_p2.csv", ", ")
+    writeTextFile(lines, "src/main/results/test_p2.csv", ", ")
 
     filtered.size must be(1)
   }
@@ -134,7 +134,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       if getValue(shortCode.published_per_night).toIntOption.getOrElse(0) >= 300 && getValue(shortCode.published_per_night).toIntOption.getOrElse(0) <= 800
     } yield List(i.owner.ID.toString,i.owner.display_name,getValue(shortCode.post_title),getValue(shortCode.published_per_night))
 
-    writeFile(lines, "src/main/results/test_p3.tsv", "\t")
+    writeTextFile(lines, "src/main/results/test_p3.tsv", "\t")
 
     filtered.size must be(484)
   }
@@ -162,7 +162,9 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       getValue(shortCode.License_variant),
       getValue(shortCode.post_status))
 
-    writeFile(lines, "src/main/results/test_p4.tsv", "\t")
+    val excelHeaders: List[String] = List("Property Title", "Property ID", "Inquiry To Name", "Inquiry To Surname", "Inquiry To Email", "Country", "License", "Post Status")
+
+    writeExcelFile(lines, "test_p4", excelHeaders)
 
     filtered.size must be(1074)
   }
