@@ -56,7 +56,7 @@ object Practice {
     }
   }
 
-  def convertToFileFormat(data: List[String], separator: String): IO[String] = IO(data.foldLeft("")((left, right) => left + separator + right))
+  def convertToFileFormat(data: List[String], separator: String): IO[String] = IO(data.mkString(separator))
 
   /**
    * @param fileName file identifier.
@@ -92,7 +92,7 @@ object Practice {
    * @param separator defines what kind of data it will be: ", " - CSV, "\t" - TSV.
    */
   def writeTextFile(data: Seq[List[String]], fileName: String, separator: String): Unit = {
-    val processedData: Seq[String] = data.map(x => x.foldLeft("")((left, right) => left + separator + right))
+    val processedData: Seq[String] = data.map(x => x.mkString(separator))
 
     writePhysicalFile(fileName, processedData)
   }
