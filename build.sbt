@@ -8,12 +8,15 @@ scalacOptions ++= Seq(
   "-Ymacro-annotations"
 )
 
-val circeVersion  = "0.13.0"
-val http4sVersion = "0.21.13"
-val slf4jVersion = "1.7.28"
+val circeVersion   = "0.13.0"
+val http4sVersion  = "0.21.13"
+val slf4jVersion   = "1.7.28"
+val catsEffectTest = "0.5.0"
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.2.2" % Test,
+  "com.codecommit" %% "cats-effect-testing-scalatest" % catsEffectTest % Test,
+  "com.codecommit" %% "cats-effect-testing-scalatest-scalacheck" % catsEffectTest % Test,
   "co.fs2" %% "fs2-core" % "2.4.6",
   "co.fs2" %% "fs2-io" % "2.4.6",
   "org.typelevel" %% "cats-effect" % "2.3.0",

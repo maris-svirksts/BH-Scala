@@ -1,6 +1,6 @@
 package json
 
-import cats.effect.{Blocker, ContextShift, ExitCode, IO}
+import cats.effect._
 import fs2.Stream
 import io.circe.Json
 import io.circe.syntax._
@@ -11,6 +11,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
+  implicit val cs: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.global)
 
   val ownerInfoParsed: Stream[IO, Json]           = fetchOwnerInfoParsed()
   val ownerInfoDecoded: Stream[IO, PropertyOwner] = fetchOwnerInfoDecoded()
@@ -100,7 +101,7 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
       i <- filtered
     } yield List(i.owner.ID.toString, i.owner.display_name)
 
-    saveToFile(lines, "src/main/results/out.txt", 100).compile.drain.unsafeRunSync()
+    saveToFile(lines, "src/main/results/out.txt", 100, ", ").compile.drain.unsafeRunSync()
 
     filtered.compile.toList.unsafeRunSync().size must be(1)
   }

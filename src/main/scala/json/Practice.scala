@@ -45,19 +45,18 @@ object Practice {
     parsedStream.through(decoder[IO, PropertyOwner])
   }
 
-  def saveToFile(in: Stream[IO, List[String]], out: String, parallelism: Int)(
+  def saveToFile(in: Stream[IO, List[String]], filename: String, parallelism: Int, separator: String)(
     implicit contextShift: ContextShift[IO]
   ): Stream[IO, Unit] = {
     Stream.resource(Blocker[IO]).flatMap { blocker =>
-      val outResource = getClass.getResource(out)
       in
-        .parEvalMapUnordered(parallelism)(convertToFileFormat)
+        .parEvalMapUnordered(parallelism)(convertToFileFormat(_, separator))
         .through(text.utf8Encode)
-        .through(file.writeAll(Paths.get(outResource.toURI), blocker))
+        .through(file.writeAll(Paths.get(filename), blocker))
     }
   }
 
-  def convertToFileFormat(data: List[String]): IO[String] = IO(data.head)
+  def convertToFileFormat(data: List[String], separator: String): IO[String] = IO(data.foldLeft("")((left, right) => left + separator + right))
 
   /**
    * @param fileName file identifier.
