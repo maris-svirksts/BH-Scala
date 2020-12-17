@@ -1,6 +1,6 @@
 package json
 
-import cats.effect.IO
+import cats.effect.{Blocker, ContextShift, ExitCode, IO}
 import fs2.Stream
 import io.circe.Json
 import io.circe.syntax._
@@ -26,6 +26,14 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     ID must be(Right(100))
   }
 
+  "Owner ID, parsed, STREAM, first json file" in {
+    val ID: Option[Int] = ownerInfoParsed.head.flatMap(x => {
+      Stream.emit(x.hcursor.downField("owner").downField("ID").as[Int].getOrElse(-1))
+    }).compile.toList.unsafeRunSync().headOption
+
+    ID must be(Some(100))
+  }
+
   "Owner ID, parsed, second json file" in {
     val ID = boardParsed.tail.headOption.flatMap(x => Some(
       x.hcursor.downField("owner").downField("ID").as[Int]
@@ -38,6 +46,12 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     val ID: Int = boardDecoded.headOption.flatMap(x => Some(x.owner.ID)).getOrElse(-1)
 
     ID must be(100)
+  }
+
+  "Owner ID, decoded, STREAM, first json file" in {
+    val ID: Option[Int] = ownerInfoDecoded.head.flatMap(x => Stream.emit(Some(x.owner.ID).getOrElse(-1))).compile.toList.unsafeRunSync().headOption
+
+    ID must be(Some(100))
   }
 
   "User Meta / nickname" in {
@@ -62,13 +76,13 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
   }
 
   "Filter (1 owner)" in {
-    val filtered = boardParsed.filter( x => x.hcursor.downField("owner").downField("ID").as[String].getOrElse("-1") == "44731")
+    val filtered: List[Json] = boardParsed.filter(x => x.hcursor.downField("owner").downField("ID").as[String].getOrElse("-1") == "44731")
 
     filtered.size must be(1)
   }
 
   "Filter to File, decoded, (1 owner)" in {
-    val filtered = boardDecoded.filter( x => { x.owner.ID == 44731 } )
+    val filtered: List[PropertyOwner] = boardDecoded.filter(x => { x.owner.ID == 44731 } )
 
     val lines: Seq[List[String]] = for {
       i <- filtered
@@ -77,6 +91,18 @@ class PracticeSpec extends AnyWordSpec with Matchers with EitherValues {
     writeTextFile(lines, "src/main/results/test_p1.csv", ", ")
 
     filtered.size must be(1)
+  }
+
+  "Filter to File, STREAM, decoded, (1 owner)" in {
+    val filtered: Stream[IO, PropertyOwner] = ownerInfoDecoded.filter(x => { x.owner.ID == 44731 } )
+
+    val lines: Stream[IO, List[String]] = for {
+      i <- filtered
+    } yield List(i.owner.ID.toString, i.owner.display_name)
+
+    saveToFile(lines, "src/main/results/out.txt", 100).compile.drain.unsafeRunSync()
+
+    filtered.compile.toList.unsafeRunSync().size must be(1)
   }
 
   "Filter to File, decoded, (1610 owners)" in {

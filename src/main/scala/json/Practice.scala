@@ -1,10 +1,11 @@
 package json
 
-import cats.effect.IO
+import cats.effect.{Blocker, ContextShift, IO}
 import com.norbitltd.spoiwo.model._
 import com.norbitltd.spoiwo.model.enums.CellFill
 import com.norbitltd.spoiwo.natures.xlsx.Model2XlsxConversions._
-import fs2.Stream
+import fs2.io.file
+import fs2.{Stream, text}
 import io.circe.Json
 import io.circe.fs2.{decoder, stringArrayParser, stringStreamParser}
 import io.circe.generic.extras.Configuration
@@ -12,6 +13,7 @@ import json.resources.ADT.PropertyOwner
 import scalaj.http.Http
 
 import java.io.{BufferedWriter, File, FileWriter}
+import java.nio.file.Paths
 
 object Practice {
   implicit val config: Configuration = Configuration.default
@@ -19,25 +21,17 @@ object Practice {
   /**
    * @return parsed JSON for all accounts.
    *
-   *         Parse all owner URL's that are provided through master file.
+   *         - Parse all owner URL's that are provided through master file.
+   *         - Read in all known data about all accounts.
    */
   def fetchOwnerInfoParsed(): Stream[IO, Json] = {
     // Master URL list for accounts.
-    val masterSrc: Stream[IO, String]    = Stream(Http("http://localhost:8080/json/links.json").asString.body)
-    val masterStream: Stream[IO, Json]   = masterSrc.through(stringArrayParser)
-    val masterStreamCompiled: List[Json] = masterStream.compile.toList.unsafeRunSync()
-    val masterList: List[String]         = masterStreamCompiled.flatMap(x => {
-      x.hcursor.downField("ownerList").as[List[String]].getOrElse(List())
-    })
+    val masterSrc: Stream[IO, String]    = Stream(Http("http://localhost:8080/json/links.txt").asString.body)
+    val masterStream: Stream[IO, String] = masterSrc
+      .through(text.lines)
+      .map(x => Http(x).asString.body)
 
-    /**
-     * Read in all known data about all accounts.
-     */
-    val stringStream: Stream[IO, String] = Stream.emits(masterList).map(x => {
-      Http(x).asString.body
-    })
-
-    stringStream.through(stringStreamParser)
+    masterStream.through(stringStreamParser)
   }
 
   /**
@@ -50,6 +44,20 @@ object Practice {
 
     parsedStream.through(decoder[IO, PropertyOwner])
   }
+
+  def saveToFile(in: Stream[IO, List[String]], out: String, parallelism: Int)(
+    implicit contextShift: ContextShift[IO]
+  ): Stream[IO, Unit] = {
+    Stream.resource(Blocker[IO]).flatMap { blocker =>
+      val outResource = getClass.getResource(out)
+      in
+        .parEvalMapUnordered(parallelism)(convertToFileFormat)
+        .through(text.utf8Encode)
+        .through(file.writeAll(Paths.get(outResource.toURI), blocker))
+    }
+  }
+
+  def convertToFileFormat(data: List[String]): IO[String] = IO(data.head)
 
   /**
    * @param fileName file identifier.
