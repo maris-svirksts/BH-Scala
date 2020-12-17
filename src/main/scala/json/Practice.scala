@@ -45,6 +45,14 @@ object Practice {
     parsedStream.through(decoder[IO, PropertyOwner])
   }
 
+  /**
+   * @param in data to save.
+   * @param filename file identifier
+   * @param parallelism how many lines to transform at once.
+   * @param separator defines what kind of data it will be: ", " - CSV, "\t" - TSV.
+   * @param contextShift implicit.
+   * @return Unit
+   */
   def saveToFile(in: Stream[IO, List[String]], filename: String, parallelism: Int, separator: String)(
     implicit contextShift: ContextShift[IO]
   ): Stream[IO, Unit] = {
@@ -56,6 +64,11 @@ object Practice {
     }
   }
 
+  /**
+   * @param data
+   * @param separator defines what kind of data it will be: ", " - CSV, "\t" - TSV.
+   * @return string of data that's ready to be saved.
+   */
   def convertToFileFormat(data: List[String], separator: String): IO[String] = IO(data.mkString(separator))
 
   /**
