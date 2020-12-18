@@ -4,7 +4,7 @@ import cats.effect.{Blocker, ContextShift, IO}
 import fs2.io.file
 import fs2.{Stream, text}
 import io.circe.Json
-import io.circe.fs2.{decoder, stringStreamParser}
+import io.circe.fs2.{decoder, stringArrayParser, stringStreamParser}
 import io.circe.generic.extras.Configuration
 import json.resources.ADT.PropertyOwner
 import json.resources.HelperFunctions.convertToFileFormat

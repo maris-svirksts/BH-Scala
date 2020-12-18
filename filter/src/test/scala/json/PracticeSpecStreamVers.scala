@@ -41,7 +41,7 @@ class PracticeSpecStreamVers extends AnyWordSpec with Matchers with EitherValues
       i <- filtered
     } yield List(i.owner.ID.toString, i.owner.display_name)
 
-    saveToTextFile(lines, "src/main/results/out.txt", 100, ", ").compile.drain.unsafeRunSync()
+    saveToTextFile(lines, "filter/src/main/results/out.txt", 100, ", ").compile.drain.unsafeRunSync()
 
     filtered.compile.toList.unsafeRunSync().size must be(1)
   }

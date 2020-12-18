@@ -47,6 +47,6 @@ object WriteToFileNoStream {
     val preparedSheet = Sheet(name = "Filtered Results").withRows(Row(style = headerStyle).withCellValues(headerData)
                                                                     +: data.map(x => Row().withCellValues(x)))
 
-    preparedSheet.saveAsXlsx("src/main/results/" + fileName + ".xlsx")
+    preparedSheet.saveAsXlsx("filter/src/main/results/" + fileName + ".xlsx")
   }
 }

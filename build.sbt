@@ -2,25 +2,29 @@ name := "BH-Filters"
 
 version := "0.8"
 
-scalaVersion := "2.13.4"
-
-scalacOptions ++= Seq(
-  "-deprecation",
-  "-feature",
-  "-Ymacro-annotations"
-  )
-
 val circeVersion      = "0.13.0"
 val http4sVersion     = "0.21.13"
 val slf4jVersion      = "1.7.28"
 val scalajVersion     = "2.4.2"
-val fs2Version        = "3.0-36-8c9dbe0"
+val fs2Version        = "2.4.6"
 val scalaTestVersion  = "3.2.2"
 val catsEffectVersion = "2.3.0"
 val catsEffectTestVer = "0.5.0"
 val spoiwoVersion     = "1.8.0"
 
 lazy val BHFilters = (project in file("."))
+  .settings(
+    inThisBuild(
+      List(
+        scalaVersion := "2.13.4",
+        scalacOptions ++= Seq(
+          "-deprecation",
+          "-feature",
+          "-Ymacro-annotations"
+        )
+      )
+    )
+  )
   .aggregate(server, filter)
 
 lazy val server = (project in file("server"))
