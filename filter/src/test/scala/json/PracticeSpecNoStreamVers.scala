@@ -99,12 +99,10 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
 
   "Filter, decoded, (1 owner), find Owner for property." in {
     val filtered    = boardDecoded.filter( x => {
-      x.owner.properties.getOrElse(Nil).exists(y => {
-        y match {
-          case (_, value) if value.property_data.property_id == 31171 => true
-          case _ => false
-        }
-      })
+      x.owner.properties.getOrElse(Nil).exists {
+        case (_, value) if value.property_data.property_id == 31171 => true
+        case _                                                      => false
+      }
     } )
 
     val lines: Seq[List[String]] = for {
@@ -121,12 +119,10 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
 
   "Filter, decoded, (484 owners), published_per_night" in {
     val filtered    = boardDecoded.filter( x => {
-      x.owner.properties.getOrElse(Nil).exists(y => {
-        y match {
-          case (_, value) if getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) >= 300 && getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) <= 800 => true
-          case _ => false
-        }
-      })
+      x.owner.properties.getOrElse(Nil).exists {
+        case (_, value) if getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) >= 300 && getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) <= 800 => true
+        case _                                                                                                                                                                                                                    => false
+      }
     } )
 
     val lines: Seq[List[String]] = for {

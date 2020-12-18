@@ -1,35 +1,53 @@
-name := "BH"
+name := "BH-Filters"
 
-version := "0.1"
+version := "0.8"
 
 scalaVersion := "2.13.4"
 
 scalacOptions ++= Seq(
+  "-deprecation",
+  "-feature",
   "-Ymacro-annotations"
-)
+  )
 
-val circeVersion   = "0.13.0"
-val http4sVersion  = "0.21.13"
-val slf4jVersion   = "1.7.28"
-val catsEffectTest = "0.5.0"
+val circeVersion      = "0.13.0"
+val http4sVersion     = "0.21.13"
+val slf4jVersion      = "1.7.28"
+val scalajVersion     = "2.4.2"
+val fs2Version        = "3.0-36-8c9dbe0"
+val scalaTestVersion  = "3.2.2"
+val catsEffectVersion = "2.3.0"
+val catsEffectTestVer = "0.5.0"
+val spoiwoVersion     = "1.8.0"
 
-libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.2.2" % Test,
-  "com.codecommit" %% "cats-effect-testing-scalatest" % catsEffectTest % Test,
-  "com.codecommit" %% "cats-effect-testing-scalatest-scalacheck" % catsEffectTest % Test,
-  "co.fs2" %% "fs2-core" % "2.4.6",
-  "co.fs2" %% "fs2-io" % "2.4.6",
-  "org.typelevel" %% "cats-effect" % "2.3.0",
-  "io.circe" %% "circe-core" % circeVersion,
-  "io.circe" %% "circe-generic" % circeVersion,
-  "io.circe" %% "circe-generic-extras" % circeVersion,
-  "io.circe" %% "circe-optics" % circeVersion,
-  "io.circe" %% "circe-parser" % circeVersion,
-  "io.circe" % "circe-fs2_2.13" % circeVersion,
-  "org.scalaj" %% "scalaj-http" % "2.4.2",
-  "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s" %% "http4s-circe" % http4sVersion,
-  "org.slf4j" % "slf4j-simple" % slf4jVersion,
-  "com.norbitltd" % "spoiwo_2.13" % "1.8.0",
-)
+lazy val BHFilters = (project in file("."))
+  .aggregate(server, filter)
+
+lazy val server = (project in file("server"))
+  .settings(name := "BH-Server")
+  .settings(libraryDependencies ++= Seq(
+    "org.http4s" %% "http4s-dsl" % http4sVersion,
+    "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+    "org.http4s" %% "http4s-circe" % http4sVersion,
+    "org.slf4j" % "slf4j-simple" % slf4jVersion
+    ))
+  .dependsOn(filter)
+
+lazy val filter = (project in file("filter"))
+  .settings(name := "BH-Filter")
+  .settings(libraryDependencies ++= Seq(
+    "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
+    "com.codecommit" %% "cats-effect-testing-scalatest" % catsEffectTestVer % Test,
+    "com.codecommit" %% "cats-effect-testing-scalatest-scalacheck" % catsEffectTestVer % Test,
+    "co.fs2" %% "fs2-core" % fs2Version,
+    "co.fs2" %% "fs2-io" % fs2Version,
+    "org.typelevel" %% "cats-effect" % catsEffectVersion,
+    "io.circe" %% "circe-core" % circeVersion,
+    "io.circe" %% "circe-generic" % circeVersion,
+    "io.circe" %% "circe-generic-extras" % circeVersion,
+    "io.circe" %% "circe-optics" % circeVersion,
+    "io.circe" %% "circe-parser" % circeVersion,
+    "io.circe" %% "circe-fs2" % circeVersion,
+    "org.scalaj" %% "scalaj-http" % scalajVersion,
+    "com.norbitltd" %% "spoiwo" % spoiwoVersion,
+    ))

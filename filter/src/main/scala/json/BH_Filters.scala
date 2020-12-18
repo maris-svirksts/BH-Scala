@@ -1,9 +1,6 @@
 package json
 
 import cats.effect.{Blocker, ContextShift, IO}
-import com.norbitltd.spoiwo.model.{CellStyle, Color, Font, Row, Sheet}
-import com.norbitltd.spoiwo.model.enums.CellFill
-import com.norbitltd.spoiwo.natures.streaming.xlsx.Model2XlsxConversions.XlsxSheet
 import fs2.io.file
 import fs2.{Stream, text}
 import io.circe.Json
