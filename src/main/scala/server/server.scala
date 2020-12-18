@@ -3,7 +3,8 @@ package server
 import cats.data.Kleisli
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import io.circe.syntax._
-import json.Practice._
+import json.BH_Filters._
+import json.resources.WriteToFileNoStream._
 import json.resources.ADT
 import json.resources.ADT.{ExportJson, PropertyOwner}
 import org.http4s.dsl.io._
@@ -19,20 +20,24 @@ import scala.concurrent.ExecutionContext
 
 object server extends IOApp {
   val blockingPool: ExecutorService = Executors.newFixedThreadPool(8)
-  val blocker: Blocker = Blocker.liftExecutorService(blockingPool)
+  val blocker     : Blocker         = Blocker.liftExecutorService(blockingPool)
 
   val routes: Kleisli[IO, Request[IO], Response[IO]] = HttpRoutes.of[IO] {
     /**
-     * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from production server.
+     * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from
+     * production server.
      * StaticFile.fromFile version.
      */
     case request@GET -> Root / "json" / fileName =>
       StaticFile.fromFile(new File("I:/owners/" + fileName), blocker, Some(request)).getOrElseF(NotFound())
 
     /**
-     * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from production server.
-     * StaticFile.fromResource version: added after a conversation with Arturs Sengilejevs where he suggested it as an alternative to the version above.
-     * It has a caching like behavior: bad for this use case. Quote from Arturs: "It is not really cache. It is magical java classloading mechanism."
+     * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from
+     * production server.
+     * StaticFile.fromResource version: added after a conversation with Arturs Sengilejevs where he suggested it as
+     * an alternative to the version above.
+     * It has a caching like behavior: bad for this use case. Quote from Arturs: "It is not really cache. It is
+     * magical java classloading mechanism."
      */
     case request@GET -> Root / "json_resource_version" / fileName if List(".json").exists(fileName.endsWith) =>
       static(fileName, blocker, request)
@@ -49,9 +54,10 @@ object server extends IOApp {
      * NOTE: This is a 'proof of concept' version. At this point in time I don't need it for anything.
      */
     case GET -> Root / "results" :? dt =>
-      val compareAgainst: Int = dt.get("compareAgainst").flatMap(x => x.headOption.flatMap(y => y.toIntOption)).getOrElse(0)
-      val comparison: String = dt.get("comparison").flatMap(x => x.headOption).getOrElse("equal")
-      val queryField: String = dt.get("queryField").flatMap(x => x.headOption).getOrElse("ID")
+      val compareAgainst: Int    = dt.get("compareAgainst").flatMap(x => x.headOption.flatMap(y => y.toIntOption))
+        .getOrElse(0)
+      val comparison    : String = dt.get("comparison").flatMap(x => x.headOption).getOrElse("equal")
+      val queryField    : String = dt.get("queryField").flatMap(x => x.headOption).getOrElse("ID")
 
       val loader: List[PropertyOwner] = fetchOwnerInfoDecoded().compile.toList.unsafeRunSync()
       val filter: List[PropertyOwner] = loader.filter(x => {
@@ -61,11 +67,11 @@ object server extends IOApp {
         }
 
         comparison match {
-          case "larger" => compareThis.forall(_ > compareAgainst)
-          case "largerEqual" => compareThis.forall(_ >= compareAgainst)
-          case "smaller" =>compareThis.forall(_ < compareAgainst)
+          case "larger"       => compareThis.forall(_ > compareAgainst)
+          case "largerEqual"  => compareThis.forall(_ >= compareAgainst)
+          case "smaller"      => compareThis.forall(_ < compareAgainst)
           case "smallerEqual" => compareThis.forall(_ <= compareAgainst)
-          case _ => compareThis.forall(_ == compareAgainst)
+          case _              => compareThis.forall(_ == compareAgainst)
         }
       })
 
@@ -84,7 +90,7 @@ object server extends IOApp {
        * could be used.
        */
 
-      val json: String = ExportJson(lines).asJson.toString()
+      val json                 : String = ExportJson(lines).asJson.toString()
       val filterHistoryFileName: String = (System.currentTimeMillis / 1000) + ".json"
       writePhysicalFile("I:/owners/" + filterHistoryFileName, Seq(json))
 
