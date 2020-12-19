@@ -59,8 +59,8 @@ object server extends IOApp {
       val comparison    : String = dt.get("comparison").flatMap(x => x.headOption).getOrElse("equal")
       val queryField    : String = dt.get("queryField").flatMap(x => x.headOption).getOrElse("ID")
 
-      val loader: List[PropertyOwner] = fetchOwnerInfoDecoded().compile.toList.unsafeRunSync()
-      val filter: List[PropertyOwner] = loader.filter(x => {
+      val loader: fs2.Stream[IO, PropertyOwner] = fetchOwnerInfoDecoded()
+      val filter: fs2.Stream[IO, PropertyOwner] = loader.filter(x => {
         val compareThis = {
           if (queryField == "ID") Some(x.owner.ID)
           else x.owner.user_meta.wp_user_level.flatMap(_.headOption.flatten)
@@ -75,7 +75,7 @@ object server extends IOApp {
         }
       })
 
-      val lines: List[List[String]] = filter.map(x => {
+      val lines: fs2.Stream[IO, List[String]] = filter.map(x => {
         val owner: ADT.UserData = x.owner
         List(owner.ID.toString, owner.user_email, owner.display_name)
       })
@@ -86,12 +86,12 @@ object server extends IOApp {
        * - a clean way to provide data to DataTables (https://datatables.net/) script.
        *
        * Note that the filename is not 100% unique at the moment. If there is a need for such,
-       * File.createTempFile(String prefix, String suffix, File directory)
+       * <i>File.createTempFile(String prefix, String suffix, File directory)</i>
        * could be used.
        */
 
-      val json                 : String = ExportJson(lines).asJson.toString()
-      val filterHistoryFileName: String = (System.currentTimeMillis / 1000) + ".json"
+      val json                 : String = ExportJson(lines.compile.toList.unsafeRunSync()).asJson.toString()
+      val filterHistoryFileName: String = s"${System.currentTimeMillis / 1000}.json"
       writePhysicalFile("I:/owners/" + filterHistoryFileName, Seq(json))
 
       Ok(ReturnData(filterHistoryFileName), `Content-Type`(MediaType.text.html))
