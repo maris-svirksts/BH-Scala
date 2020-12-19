@@ -77,7 +77,7 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
       i <- filtered
     } yield List(i.owner.ID.toString, i.owner.display_name)
 
-    writeTextFile(lines, "filter/src/main/results/test_p1.csv", ", ")
+    writeTextFile(lines, "filter/src/main/results/noStream_1.csv", ", ")
 
     filtered.size must be(1)
   }
@@ -92,7 +92,7 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
 
     val json = ExportJson(lines).asJson.toString()
 
-    writePhysicalFile("filter/src/main/results/results.json", Seq(json))
+    writePhysicalFile("filter/src/main/results/noStream_2.json", Seq(json))
 
     filtered.size must be(1610)
   }
@@ -112,7 +112,7 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
       if value.property_data.property_id == 31171
     } yield List(i.owner.ID.toString, i.owner.display_name, getValue(value.property_data.property_fields.post_title))
 
-    writeTextFile(lines, "filter/src/main/results/test_p2.csv", ", ")
+    writeTextFile(lines, "filter/src/main/results/noStream_3.csv", ", ")
 
     filtered.size must be(1)
   }
@@ -133,7 +133,7 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
       if getValue(shortCode.published_per_night).toIntOption.getOrElse(0) >= 300 && getValue(shortCode.published_per_night).toIntOption.getOrElse(0) <= 800
     } yield List(i.owner.ID.toString,i.owner.display_name,getValue(shortCode.post_title),getValue(shortCode.published_per_night))
 
-    writeTextFile(lines, "filter/src/main/results/test_p3.tsv", "\t")
+    writeTextFile(lines, "filter/src/main/results/noStream_4.tsv", "\t")
 
     filtered.size must be(484)
   }
@@ -163,7 +163,7 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
 
     val excelHeaders: List[String] = List("Property Title", "Property ID", "Inquiry To Name", "Inquiry To Surname", "Inquiry To Email", "Country", "License", "Post Status")
 
-    writeExcelFile(lines, "test_p4", excelHeaders)
+    writeExcelFile(lines, "noStream_5", excelHeaders)
 
     filtered.size must be(1074)
   }

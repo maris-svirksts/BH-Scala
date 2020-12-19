@@ -41,7 +41,7 @@ class PracticeSpecStreamVers extends AnyWordSpec with Matchers with EitherValues
       i <- filtered
     } yield List(i.owner.ID.toString, i.owner.display_name)
 
-    saveToTextFile(lines, "filter/src/main/results/out.txt", 100, ", ").compile.drain.unsafeRunSync()
+    saveToTextFile(lines, "filter/src/main/results/stream_1.csv", 100, ", ").compile.drain.unsafeRunSync()
 
     filtered.compile.toList.unsafeRunSync().size must be(1)
   }
@@ -71,7 +71,7 @@ class PracticeSpecStreamVers extends AnyWordSpec with Matchers with EitherValues
 
     val excelHeaders: List[String] = List("Property Title", "Property ID", "Inquiry To Name", "Inquiry To Surname", "Inquiry To Email", "Country", "License", "Post Status")
 
-    writeExcelFile(lines.compile.toList.unsafeRunSync(), "test_p5", excelHeaders)
+    writeExcelFile(lines.compile.toList.unsafeRunSync(), "stream_2", excelHeaders)
 
     filtered.compile.toList.unsafeRunSync().size must be(1074)
   }
