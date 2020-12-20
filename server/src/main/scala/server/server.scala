@@ -56,6 +56,7 @@ object server extends IOApp {
      * NOTE: This is a 'proof of concept' version. At this point in time I don't need it for anything.
      */
     case GET -> Root / "results" :? dt =>
+      val filterHistoryFileName: String = s"${System.currentTimeMillis / 1000}.json"
       val compareAgainst: Int    = dt.get("compareAgainst").flatMap(x => x.headOption.flatMap(y => y.toIntOption))
         .getOrElse(0)
       val comparison    : String = dt.get("comparison").flatMap(x => x.headOption).getOrElse("equal")
@@ -82,23 +83,22 @@ object server extends IOApp {
         ExportJson(List(List(owner.ID.toString, owner.user_email, owner.display_name))).asJson.toString()
       })
 
+      val processedLines = lines
+        .through(text.utf8Encode)
+        .through(file.writeAll(Paths.get("I:/owners/" + filterHistoryFileName), blocker))
+        .compile.drain
+
       /**
        * The results are saved into file for the following reasons:
        * - create a history trail of the results received.
        * - a clean way to provide data to DataTables (https://datatables.net/) script.
        *
        * Note that the filename is not 100% unique at the moment. If there is a need for such,
-       * <i>File.createTempFile(String prefix, String suffix, File directory)</i>
+       * File.createTempFile(String prefix, String suffix, File directory)
        * could be used.
        */
+      processedLines.flatMap(_ => Ok(ReturnData(filterHistoryFileName), `Content-Type`(MediaType.text.html)))
 
-      val filterHistoryFileName: String = s"${System.currentTimeMillis / 1000}.json"
-
-      lines
-        .through(text.utf8Encode)
-        .through(file.writeAll(Paths.get("I:/owners/" + filterHistoryFileName), blocker)).compile.drain.unsafeRunSync()
-
-      Ok(ReturnData(filterHistoryFileName), `Content-Type`(MediaType.text.html))
   }.orNotFound
 
   def static(file: String, blocker: Blocker, request: Request[IO]): IO[Response[IO]] = {
