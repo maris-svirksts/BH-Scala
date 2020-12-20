@@ -8,10 +8,11 @@ import io.circe.syntax._
 import json.BH_Filters._
 import json.resources.ADT
 import json.resources.ADT.{ExportJson, PropertyOwner}
+import json.resources.HelperFunctions.systemPath
 import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.blaze.BlazeServerBuilder
-import resources.HTMLPages.{ReturnData, query}
+import server.resources.HTMLPages.{ReturnData, query}
 import org.http4s._
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 
@@ -20,7 +21,7 @@ import java.nio.file.Paths
 import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.ExecutionContext
 
-object server extends IOApp {
+object Server extends IOApp {
   val blockingPool: ExecutorService = Executors.newFixedThreadPool(8)
   val blocker     : Blocker         = Blocker.liftExecutorService(blockingPool)
 
@@ -31,7 +32,7 @@ object server extends IOApp {
      * StaticFile.fromFile version.
      */
     case request@GET -> Root / "json" / fileName =>
-      StaticFile.fromFile(new File("I:/owners/" + fileName), blocker, Some(request)).getOrElseF(NotFound())
+      StaticFile.fromFile(new File(systemPath + "owners/" + fileName), blocker, Some(request)).getOrElseF(NotFound())
 
     /**
      * Load JSON data for reading. This part is not required if val masterSrc from Practice.scala reads it from
@@ -78,15 +79,14 @@ object server extends IOApp {
         }
       })
 
-      val lines: fs2.Stream[IO, String] = filter.map(x => {
+      val lines: fs2.Stream[IO, List[String]] = filter.map(x => {
         val owner: ADT.UserData = x.owner
-        ExportJson(List(List(owner.ID.toString, owner.user_email, owner.display_name))).asJson.toString()
+        List(owner.ID.toString, owner.user_email, owner.display_name)
       })
 
-      val processedLines = lines
-        .through(text.utf8Encode)
-        .through(file.writeAll(Paths.get("I:/owners/" + filterHistoryFileName), blocker))
-        .compile.drain
+      val processedLines: fs2.Stream[IO, String] = lines
+        .chunkAll
+        .map(x => ExportJson(x.toList).asJson.toString())
 
       /**
        * The results are saved into file for the following reasons:
@@ -94,15 +94,20 @@ object server extends IOApp {
        * - a clean way to provide data to DataTables (https://datatables.net/) script.
        *
        * Note that the filename is not 100% unique at the moment. If there is a need for such,
-       * File.createTempFile(String prefix, String suffix, File directory)
+       * <i>File.createTempFile(String prefix, String suffix, File directory)</i>
        * could be used.
        */
-      processedLines.flatMap(_ => Ok(ReturnData(filterHistoryFileName), `Content-Type`(MediaType.text.html)))
+      val result = processedLines
+        .through(text.utf8Encode)
+        .through(file.writeAll(Paths.get(systemPath + "owners/" + filterHistoryFileName), blocker))
+        .compile.drain
+
+      result.flatMap(_ => Ok(ReturnData(filterHistoryFileName), `Content-Type`(MediaType.text.html)))
 
   }.orNotFound
 
   def static(file: String, blocker: Blocker, request: Request[IO]): IO[Response[IO]] = {
-    StaticFile.fromResource("owners/" + file, blocker, Some(request)).getOrElseF(NotFound())
+    StaticFile.fromResource(systemPath + "owners/" + file, blocker, Some(request)).getOrElseF(NotFound())
   }
 
   def run(args: List[String]): IO[ExitCode] =

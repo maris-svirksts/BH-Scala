@@ -19,4 +19,11 @@ object HelperFunctions {
   def getValue(value: Option[List[Option[String]]]): String = {
     value.flatMap(x => x.headOption.flatten).getOrElse("")
   }
+
+  /**
+   * @return base path to owner files.
+   */
+  def systemPath(): String = {
+    "I:/"
+  }
 }
