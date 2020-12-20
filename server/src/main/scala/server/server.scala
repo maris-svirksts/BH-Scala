@@ -4,13 +4,10 @@ import cats.data.Kleisli
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import fs2.io.file
 import fs2.text
-import io.circe.Json
 import io.circe.syntax._
 import json.BH_Filters._
-import json.resources.WriteToFileNoStream._
 import json.resources.ADT
-import json.resources.ADT.{ExportJson, ExportJsonV1, PropertyOwner}
-import json.resources.HelperFunctions.convertToJsonFormat
+import json.resources.ADT.{ExportJson, PropertyOwner}
 import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.blaze.BlazeServerBuilder

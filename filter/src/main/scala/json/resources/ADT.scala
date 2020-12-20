@@ -7,8 +7,6 @@ import json.resources.TypeDefinitions._
 object ADT {
   implicit val config: Configuration = Configuration.default
 
-
-  @JsonCodec final case class ExportJsonV1(data: List[String])
   @JsonCodec final case class ExportJson(data: List[List[String]])
 
   @JsonCodec final case class PropertyOwner(owner: UserData)
