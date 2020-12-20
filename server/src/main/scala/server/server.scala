@@ -2,11 +2,15 @@ package server
 
 import cats.data.Kleisli
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
+import fs2.io.file
+import fs2.text
+import io.circe.Json
 import io.circe.syntax._
 import json.BH_Filters._
 import json.resources.WriteToFileNoStream._
 import json.resources.ADT
-import json.resources.ADT.{ExportJson, PropertyOwner}
+import json.resources.ADT.{ExportJson, ExportJsonV1, PropertyOwner}
+import json.resources.HelperFunctions.convertToJsonFormat
 import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -15,6 +19,7 @@ import org.http4s._
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 
 import java.io.File
+import java.nio.file.Paths
 import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.ExecutionContext
 
@@ -75,9 +80,9 @@ object server extends IOApp {
         }
       })
 
-      val lines: fs2.Stream[IO, List[String]] = filter.map(x => {
+      val lines: fs2.Stream[IO, String] = filter.map(x => {
         val owner: ADT.UserData = x.owner
-        List(owner.ID.toString, owner.user_email, owner.display_name)
+        ExportJson(List(List(owner.ID.toString, owner.user_email, owner.display_name))).asJson.toString()
       })
 
       /**
@@ -90,9 +95,11 @@ object server extends IOApp {
        * could be used.
        */
 
-      val json                 : String = ExportJson(lines.compile.toList.unsafeRunSync()).asJson.toString()
       val filterHistoryFileName: String = s"${System.currentTimeMillis / 1000}.json"
-      writePhysicalFile("I:/owners/" + filterHistoryFileName, Seq(json))
+
+      lines
+        .through(text.utf8Encode)
+        .through(file.writeAll(Paths.get("I:/owners/" + filterHistoryFileName), blocker)).compile.drain.unsafeRunSync()
 
       Ok(ReturnData(filterHistoryFileName), `Content-Type`(MediaType.text.html))
   }.orNotFound
