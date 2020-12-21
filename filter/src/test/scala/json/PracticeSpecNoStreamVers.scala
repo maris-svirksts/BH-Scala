@@ -120,8 +120,10 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
   "Filter, decoded, (484 owners), published_per_night" in {
     val filtered    = boardDecoded.filter( x => {
       x.owner.properties.getOrElse(Nil).exists {
-        case (_, value) if getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) >= 300 && getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) <= 800 => true
-        case _                                                                                                                                                                                                                    => false
+        case (_, value) if
+        getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) >= 300 &&
+          getValue(value.property_data.property_fields.published_per_night).toIntOption.getOrElse(0) <= 800 => true
+        case _                                                                                              => false
       }
     } )
 
@@ -161,7 +163,15 @@ class PracticeSpecNoStreamVers extends AnyWordSpec with Matchers with EitherValu
       getValue(shortCode.License_variant),
       getValue(shortCode.post_status))
 
-    val excelHeaders: List[String] = List("Property Title", "Property ID", "Inquiry To Name", "Inquiry To Surname", "Inquiry To Email", "Country", "License", "Post Status")
+    val excelHeaders: List[String] = List(
+      "Property Title",
+      "Property ID",
+      "Inquiry To Name",
+      "Inquiry To Surname",
+      "Inquiry To Email",
+      "Country",
+      "License",
+      "Post Status")
 
     writeExcelFile(lines, "noStream_5", excelHeaders)
 
