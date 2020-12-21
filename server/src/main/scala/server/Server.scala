@@ -20,6 +20,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 
 object Server extends IOApp {
   val blockingPool: ExecutorService = Executors.newFixedThreadPool(8)
@@ -113,6 +114,7 @@ object Server extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO](ExecutionContext.global)
       .bindHttp(8080, "0.0.0.0")
+      .withIdleTimeout(60.seconds)
       .withHttpApp(routes)
       .serve
       .compile
